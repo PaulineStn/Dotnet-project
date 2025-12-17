@@ -38,6 +38,46 @@ namespace Gauniv.WebServer.Data
             : base(options)
         {
         }
-        public DbSet<Game> Games { get; set; }
+        public DbSet<Game> Games => Set<Game>();
+        public DbSet<Category> Categories => Set<Category>();
+        public DbSet<Purchase> Purchases => Set<Purchase>();
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+
+            // Configuration de la relation plusieurs-à-plusieurs entre User et Game via Purchase
+            modelBuilder.Entity<Purchase>()
+                .HasKey(p => new { p.UserId, p.GameId });
+
+            modelBuilder.Entity<Purchase>()
+                .HasOne(p => p.User)
+                .WithMany(u => u.Purchases)
+                .HasForeignKey(p => p.UserId);
+
+            modelBuilder.Entity<Purchase>()
+                .HasOne(p => p.Game)
+                .WithMany(g => g.Purchases)
+                .HasForeignKey(p => p.GameId);
+            
+            // Configuration de la relation plusieurs-à-plusieurs entre Game et Category
+            modelBuilder.Entity<Game>()
+                .HasMany(g => g.GameCategories)
+                .WithMany(c => c.Games)
+                .UsingEntity<Dictionary<string, object>>(
+                    "GameCategory",
+                    j => j
+                        .HasOne<Category>()
+                        .WithMany()
+                        .HasForeignKey("CategoryId")
+                        .HasConstraintName("FK_GameCategory_Category_CategoryId")
+                        .OnDelete(DeleteBehavior.Cascade),
+                    j => j
+                        .HasOne<Game>()
+                        .WithMany()
+                        .HasForeignKey("GameId")
+                        .HasConstraintName("FK_GameCategory_Game_GameId")
+                        .OnDelete(DeleteBehavior.Cascade));
+        }
     }
 }

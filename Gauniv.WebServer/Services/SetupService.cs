@@ -60,6 +60,11 @@ namespace Gauniv.WebServer.Services
                 {
                     throw new Exception("ApplicationDbContext is null");
                 }
+                
+                if (applicationDbContext.Database.GetPendingMigrations().Any())
+                {
+                    applicationDbContext.Database.Migrate();
+                }
 
                 var r = userSignInManager?.CreateAsync(new User()
                 {
@@ -69,6 +74,7 @@ namespace Gauniv.WebServer.Services
                 }, "password").Result;
 
                 // ....
+                
 
                 applicationDbContext.SaveChanges();
 

@@ -156,6 +156,8 @@ app.MapGroup("Bearer").MapPost("/login", async Task<Results<Ok<AccessTokenRespon
             // The signInManager already produced the needed response in the form of a cookie or bearer token.
             return TypedResults.Empty;
         });
+        
+app.MapIdentityApi<User>();
 
 app.UseSwaggerUI(options =>
 {
