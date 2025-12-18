@@ -4,7 +4,7 @@
 
 @if (User.Identity?.IsAuthenticated == true && User.IsInRole("Admin"))
 {
-    <a class="btn btn-success" asp-controller="Games" asp-action="Create">Ajouter un jeu</a>
+    <a class="btn btn-primary" asp-controller="Games" asp-action="Create">Ajouter un jeu</a>
     
 }
 
