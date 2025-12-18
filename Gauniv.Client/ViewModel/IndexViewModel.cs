@@ -21,12 +21,7 @@ namespace Gauniv.Client.ViewModel
         private void LoadGames()
         {
                 
-            var req = _api.GetAllAsync(
-                categoryId: null,
-                minPrice: null,
-                maxPrice: null,
-                search: null
-            );
+            var req = _api.GetAllAsync(null, null, null, null, null, null);
             
             Console.WriteLine($"games: {req.Result}");
         

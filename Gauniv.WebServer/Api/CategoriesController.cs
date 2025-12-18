@@ -8,7 +8,6 @@ namespace Gauniv.WebServer.Controllers;
 
 [ApiController]
 [Route("api/1.0.0/categories")]
-[Authorize]
 public class CategoriesController : ControllerBase
 {
     private readonly ApplicationDbContext _db;
@@ -20,7 +19,7 @@ public class CategoriesController : ControllerBase
 
     // GET api/categories
     [HttpGet]
-    // [AllowAnonymous]
+    [AllowAnonymous]
     public async Task<IEnumerable<CategoryDto>> GetAll()
     {
         return await _db.Categories
@@ -30,7 +29,7 @@ public class CategoriesController : ControllerBase
 
     // GET api/categories/{id}
     [HttpGet("{id:int}")]
-    // [AllowAnonymous]
+    [AllowAnonymous]
     public async Task<ActionResult<CategoryDto>> Get(int id)
     {
         var category = await _db.Categories.FindAsync(id);

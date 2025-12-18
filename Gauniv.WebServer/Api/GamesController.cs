@@ -67,18 +67,21 @@ namespace Gauniv.WebServer.Api
         [HttpGet]
         [AllowAnonymous]
         public async Task<ActionResult<IEnumerable<GameDto>>> GetAll(
-            [FromQuery] int? categoryId,
+            [FromQuery] int[]? category,
             [FromQuery] decimal? minPrice,
             [FromQuery] decimal? maxPrice,
-            [FromQuery] string? search
+            [FromQuery] string? search,
+            [FromQuery] int offset = 0,
+            [FromQuery] int limit = 20
         )
         {
             var query = _db.Games
                 .Include(g => g.Categories)
                 .AsQueryable();
 
-            if (categoryId.HasValue)
-                query = query.Where(g => g.Categories.Any(c => c.Id == categoryId));
+            // Filtrer par catégorie
+            if (category?.Length > 0)
+                query = query.Where(g => g.Categories.Any(c => category.Contains(c.Id)));
 
             if (minPrice.HasValue)
                 query = query.Where(g => g.Price >= minPrice);
@@ -88,6 +91,12 @@ namespace Gauniv.WebServer.Api
 
             if (!string.IsNullOrWhiteSpace(search))
                 query = query.Where(g => g.Name.ToLower().Contains(search.ToLower()));
+            
+            // Pagination
+            query = query
+                .OrderBy(g => g.Name)
+                .Skip(offset)
+                .Take(limit);
 
             var result = query
                 .Adapt<List<GameDto>>(_mappingProfile.Config);
@@ -170,27 +179,45 @@ namespace Gauniv.WebServer.Api
         // GET: api/1.0.0/Games/MyPurchases
         [HttpGet]
         [Authorize]
-        public async Task<ActionResult<IEnumerable<GameDto>>> MyPurchases()
+        public async Task<ActionResult<IEnumerable<GameDto>>> MyPurchases(
+            [FromQuery] int[]? category,
+            [FromQuery] decimal? minPrice,
+            [FromQuery] decimal? maxPrice,
+            [FromQuery] string? search,
+            [FromQuery] int offset = 0,
+            [FromQuery] int limit = 20
+            )
         {
             var user = await _userManager.GetUserAsync(User);
             if (user == null) return Unauthorized();
 
-            // var games = await _db.UserGamePurchases
-            //     .Where(ug => ug.UserId == user.Id)
-            //     .Include(ug => ug.Game)
-            //         .ThenInclude(g => g.Categories)
-            //     .Select(ug => new GameDto(
-            //         ug.Game.Id,
-            //         ug.Game.Name,
-            //         ug.Game.Price,
-            //         ug.Game.CurrentVersion,
-            //         ug.Game.Categories.Select(c => c.Name)
-            //     ))
-            //     .ToListAsync();
+            
+            // Récupérer uniquement les jeux du user
             var query = _db.UserGamePurchases
                 .Where(ug => ug.UserId == user.Id)
-                .Include(ug => ug.Game)
-                .ThenInclude(g => g.Categories);
+                .Select(ug => ug.Game)          // <-- IMPORTANT : on passe aux jeux
+                .Include(g => g.Categories)
+                .AsQueryable();
+            
+            // Filtrer par catégorie
+            if (category?.Length > 0)
+                query = query.Where(g => g.Categories.Any(c => category.Contains(c.Id)));
+
+            if (minPrice.HasValue)
+                query = query.Where(g => g.Price >= minPrice);
+
+            if (maxPrice.HasValue)
+                query = query.Where(g => g.Price <= maxPrice);
+
+            if (!string.IsNullOrWhiteSpace(search))
+                query = query.Where(g => g.Name.ToLower().Contains(search.ToLower()));
+            
+            // Pagination
+            query = query
+                .OrderBy(g => g.Name)
+                .Skip(offset)
+                .Take(limit);
+            
             var result = query
                 .Adapt<List<GameDto>>(_mappingProfile.Config);
 
