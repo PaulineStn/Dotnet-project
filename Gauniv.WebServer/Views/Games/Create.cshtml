@@ -2,11 +2,12 @@
 
 @{
     ViewData["Title"] = "Ajouter un jeu";
+    var categories = ViewBag.Categories as IEnumerable<Gauniv.WebServer.Data.Category>;
 }
 
 <h1>Ajouter un jeu</h1>
 
-<form asp-action="Create" asp-controller="Games" method="post">
+<form asp-action="Create" asp-controller="Games" method="post" enctype="multipart/form-data">
     @Html.AntiForgeryToken()
 
     <div class="mb-3">
@@ -27,9 +28,40 @@
         <span asp-validation-for="Price" class="text-danger"></span>
     </div>
 
-    <div class="mb-3">
+     <div class="mb-3">
+        <label class="form-label">Catégories</label>
 
+        <div class="text-danger">
+            @Html.ValidationMessage("categoryIds")
+        </div>
+
+        @if (!categories.Any())
+        {
+            <div class="text-muted">Aucune catégorie disponible.</div>
+        }
+        else
+        {
+                @foreach (var c in categories)
+                {
+                    <div class="form-check">
+                        <input class="form-check-input"
+                               type="checkbox"
+                               name="categoryIds"
+                               value="@c.Id"
+                               id="cat_@c.Id"
+                        />
+                        <label class="form-check-label" for="cat_@c.Id">@c.Name</label>
+                    </div>
+                }
+        }
     </div>
+
+    <div class="mb-3">
+        <label class="form-label">Payload (fichier)</label>
+        <input type="file" name="payloadFile" class="form-control" />
+        <span class="text-danger">@Html.ValidationMessage("payloadFile")</span>
+    </div>
+
 
     <button type="submit" class="btn btn-primary">Créer</button>
     <a asp-action="Index" class="btn btn-secondary">Annuler</a>

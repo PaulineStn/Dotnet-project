@@ -39,14 +39,41 @@ public class GamesController : Controller
     }
 
     [Authorize(Roles = "Admin")]
-    public IActionResult Create() => View();
+    public async Task<IActionResult> Create()
+    {
+        await PopulateCategoriesAsync();
+        return View(new Game());
+    }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
     [Authorize(Roles = "Admin")]
-    public async Task<IActionResult> Create(Game game)
+    public async Task<IActionResult> Create(Game game, int[]? categoryIds, IFormFile? payloadFile)
     {
-        if (!ModelState.IsValid) return View(game);
+        var local_categories = categoryIds?.Length > 0
+            ? await _db.Categories.Where(c => categoryIds.Contains(c.Id)).ToListAsync()
+            : new List<Category>();
+
+        if (local_categories.Count == 0)
+            ModelState.AddModelError("Categories", "Choisissez au moins une catégorie.");
+
+        if (payloadFile == null || payloadFile.Length == 0)
+        ModelState.AddModelError("payloadFile", "Veuillez sélectionner un fichier payload.");
+
+        if (!ModelState.IsValid)
+        {
+            game.Categories = local_categories;
+            await PopulateCategoriesAsync();
+            return View(game);
+        }
+
+        using (var ms = new MemoryStream())
+        {
+            await payloadFile!.CopyToAsync(ms);
+            game.Payload = ms.ToArray();
+        }
+
+        game.Categories = local_categories;
         _db.Games.Add(game);
         await _db.SaveChangesAsync();
         return RedirectToAction(nameof(Index));
@@ -55,25 +82,50 @@ public class GamesController : Controller
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Edit(int id)
     {
-        var local_game = await _db.Games.FindAsync(id);
+        var local_game = await _db.Games
+            .Include(g => g.Categories)
+            .FirstOrDefaultAsync(g => g.Id == id);
+
         if (local_game == null) return NotFound();
+        await PopulateCategoriesAsync();
         return View(local_game);
     }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
     [Authorize(Roles = "Admin")]
-    public async Task<IActionResult> Edit(int id, Game game)
+    public async Task<IActionResult> Edit(int id, Game game, int[]? categoryIds, IFormFile? payloadFile)
     {
     if (id != game.Id) return BadRequest();
-    if (!ModelState.IsValid) return View(game);
+    //if (!ModelState.IsValid) return View(game);
 
-    var local_game = await _db.Games.FirstOrDefaultAsync(g => g.Id == id);
+    var local_game = await _db.Games
+        .Include(g => g.Categories)
+        .FirstOrDefaultAsync(g => g.Id == id);
+
     if (local_game == null) return NotFound();
+
+    var local_categories = categoryIds?.Length > 0
+        ? await _db.Categories.Where(c => categoryIds.Contains(c.Id)).ToListAsync()
+        : new List<Category>();
+
+    if (local_categories.Count == 0)
+        ModelState.AddModelError("categoryIds", "Choisissez au moins une catégorie.");
+
+    if (!ModelState.IsValid)
+    {
+        game.Categories = local_categories;
+        await PopulateCategoriesAsync();
+        return View(game);
+    }
 
     local_game.Name = game.Name;
     local_game.Price = game.Price;
     local_game.CurrentVersion = game.CurrentVersion;
+
+    local_game.Categories.Clear();
+    foreach (var c in local_categories)
+        local_game.Categories.Add(c);
 
     await _db.SaveChangesAsync();
     return RedirectToAction(nameof(Index));
@@ -98,5 +150,13 @@ public class GamesController : Controller
         _db.Games.Remove(local_game);
         await _db.SaveChangesAsync();
         return RedirectToAction(nameof(Index));
+    }
+
+    private async Task PopulateCategoriesAsync()
+    {
+        ViewBag.Categories = await _db.Categories
+            .AsNoTracking()
+            .OrderBy(c => c.Name)
+            .ToListAsync();
     }
 }
