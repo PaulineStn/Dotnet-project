@@ -33,5 +33,9 @@ namespace Gauniv.WebServer.Data
 {
     public class User : IdentityUser
     {
+        //avec IdentityUser, on a déjà un Id (string), un UserName, un PasswordHash, un Email, etc.
+        public string FirstName { get; set; } =  string.Empty;
+        public string LastName { get; set; } =  string.Empty;
+        public ICollection<UserGamePurchase> UserGamePurchases { get; set; } = new List<UserGamePurchase>();
     }
 }

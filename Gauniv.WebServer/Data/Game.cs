@@ -38,5 +38,22 @@ namespace Gauniv.WebServer.Data
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         [Key]
         public int Id { get; set; }
+
+        public string Name { get; set; } = string.Empty;
+
+        public string Description { get; set; } =  string.Empty;
+
+        public byte[] Payload { get; set; } = Array.Empty<byte>();
+
+        public decimal Price { get; set; }
+
+        public string CurrentVersion { get; set; } = string.Empty;
+
+        // Game ↔ Category (many-to-many)
+        public ICollection<Category> Categories { get; set; } = new List<Category>();
+        
+        // Game ↔ User (many-to-many avec payload)
+        public ICollection<UserGamePurchase> UserGamePurchases { get; set; } = new List<UserGamePurchase>(); // liste des utilisateurs ayant acheté le jeu
+
     }
 }

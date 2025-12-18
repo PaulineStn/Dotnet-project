@@ -39,5 +39,47 @@ namespace Gauniv.WebServer.Data
         {
         }
         public DbSet<Game> Games { get; set; }
+        public DbSet<Category> Categories { get; set; } = null!;
+        public DbSet<UserGamePurchase> UserGamePurchases { get; set; } = null!;
+
+        
+        protected override void OnModelCreating(ModelBuilder builder)
+        {
+            base.OnModelCreating(builder);
+
+            // Game ↔ Category (many-to-many simple)
+            builder.Entity<Game>()
+                .HasMany(g => g.Categories)
+                .WithMany(c => c.Games)
+                .UsingEntity<Dictionary<string, object>>(
+                    "GameCategories",
+                    j => j
+                        .HasOne<Category>()
+                        .WithMany()
+                        .HasForeignKey("CategoryId")
+                        .OnDelete(DeleteBehavior.Cascade),
+                    j => j
+                        .HasOne<Game>()
+                        .WithMany()
+                        .HasForeignKey("GameId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                );
+
+
+            // User ↔ Game (many-to-many avec payload)
+            builder.Entity<UserGamePurchase>()
+                .HasKey(ug => new { ug.UserId, ug.GameId });
+
+            builder.Entity<UserGamePurchase>()
+                .HasOne(ug => ug.User)
+                .WithMany(u => u.UserGamePurchases)
+                .HasForeignKey(ug => ug.UserId);
+
+            builder.Entity<UserGamePurchase>()
+                .HasOne(ug => ug.Game)
+                .WithMany(g => g.UserGamePurchases)
+                .HasForeignKey(ug => ug.GameId);
+        }
+
     }
 }

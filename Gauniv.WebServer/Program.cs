@@ -67,10 +67,10 @@ builder.Services.Configure<RequestLocalizationOptions>(s =>
 });
 // Add services to the container.
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
-/*builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseNpgsql(connectionString));*/
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseInMemoryDatabase("Gauniv.db"));
+    options.UseNpgsql(connectionString));
+//builder.Services.AddDbContext<ApplicationDbContext>(options =>
+//    options.UseInMemoryDatabase("Gauniv.db"));
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
 builder.Services.AddIdentityApiEndpoints<User>(options => {
@@ -114,6 +114,8 @@ app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 
+app.MapControllers();
+
 app.MapStaticAssets();
 
 app.MapControllerRoute(
@@ -156,6 +158,8 @@ app.MapGroup("Bearer").MapPost("/login", async Task<Results<Ok<AccessTokenRespon
             // The signInManager already produced the needed response in the form of a cookie or bearer token.
             return TypedResults.Empty;
         });
+
+app.MapIdentityApi<User>();
 
 app.UseSwaggerUI(options =>
 {

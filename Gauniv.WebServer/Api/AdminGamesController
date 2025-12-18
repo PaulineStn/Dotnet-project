@@ -1,0 +1,67 @@
+namespace Gauniv.WebServer.Api.Admin
+{
+    [Route("api/1.0.0/admin/games")]
+    [ApiController]
+    [Authorize(Roles = "Admin")]
+    public class AdminGamesController : ControllerBase
+    {
+        private readonly ApplicationDbContext appDbContext;
+
+        public AdminGamesController(ApplicationDbContext appDbContext)
+        {
+            this.appDbContext = appDbContext;
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Create([FromBody] GameCreateDto dto)
+        {
+            var local_game = new Game
+            {
+                Name = dto.Name,
+                Description = dto.Description,
+                Price = dto.Price,
+                CurrentVersion = dto.CurrentVersion
+            };
+
+            appDbContext.Games.Add(local_game);
+            await appDbContext.SaveChangesAsync();
+
+            return CreatedAtAction(nameof(GetById), new { id = local_game.Id }, local_game);
+        }
+
+        [HttpPut("{id:int}")]
+        public async Task<IActionResult> Update(int id, [FromBody] GameUpdateDto dto)
+        {
+            var local_game = await appDbContext.Games.FindAsync(id);
+            if (local_game == null) return NotFound();
+
+            local_game.Name = dto.Name;
+            local_game.Description = dto.Description;
+            local_game.Price = dto.Price;
+            local_game.CurrentVersion = dto.CurrentVersion;
+
+            await appDbContext.SaveChangesAsync();
+            return NoContent();
+        }
+
+        [HttpDelete("{id:int}")]
+        public async Task<IActionResult> Delete(int id)
+        {
+            var local_game = await appDbContext.Games.FindAsync(id);
+            if (local_game == null) return NotFound();
+
+            appDbContext.Games.Remove(local_game);
+            await appDbContext.SaveChangesAsync();
+            return NoContent();
+        }
+
+        [HttpGet("{id:int}")]
+        public async Task<IActionResult> GetById(int id)
+        {
+            var local_game = await appDbContext.Games.FindAsync(id);
+            if (local_game == null) return NotFound();
+
+            return Ok(local_game);
+        }
+    }
+}
