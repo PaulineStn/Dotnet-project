@@ -64,6 +64,7 @@ namespace Gauniv.WebServer.Api
 
         // GET: api/1.0.0/Games/List
         [HttpGet]
+        [AllowAnonymous]
         public async Task<ActionResult<IEnumerable<GameDto>>> List(
             [FromQuery] int? categoryId,
             [FromQuery] decimal? minPrice,
@@ -96,6 +97,7 @@ namespace Gauniv.WebServer.Api
 
         // GET: api/1.0.0/Games/Get/5
         [HttpGet("{id:int}")]
+        [AllowAnonymous]
         public async Task<ActionResult<GameDetailDto>> Get(int id)
         {
             var game = await _db.Games
@@ -109,6 +111,7 @@ namespace Gauniv.WebServer.Api
         }
 
         // POST: api/1.0.0/Games/Create
+        //Admin only
         [HttpPost]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Create([FromBody] CreateGameDto dto)
@@ -166,7 +169,7 @@ namespace Gauniv.WebServer.Api
 
         // GET: api/1.0.0/Games/MyPurchases
         [HttpGet]
-        [Authorize(Roles = "Admin")]
+        [Authorize]
         public async Task<ActionResult<IEnumerable<GameDto>>> MyPurchases()
         {
             var user = await _userManager.GetUserAsync(User);
