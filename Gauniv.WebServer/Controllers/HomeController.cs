@@ -52,6 +52,10 @@ namespace Gauniv.WebServer.Controllers
             return View(new List<Game> { new() { Id = 0 } });
         }
 
+        public IActionResult Privacy()
+        {
+            return View();
+        }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
