@@ -41,15 +41,158 @@ using MapsterMapper;
 using Mapster;
 using Microsoft.EntityFrameworkCore;
 
+
 namespace Gauniv.WebServer.Api
 {
     [Route("api/1.0.0/[controller]/[action]")]
     [ApiController]
-    public class GamesController(ApplicationDbContext appDbContext, IMapper mapper, UserManager<User> userManager, MappingProfile mp) : ControllerBase
+    [Authorize] // ← toutes les actions nécessitent un utilisateur connecté
+    public class GamesController : ControllerBase
     {
-        private readonly ApplicationDbContext appDbContext = appDbContext;
-        private readonly IMapper mapper = mapper;
-        private readonly UserManager<User> userManager = userManager;
-        private readonly MappingProfile mp = mp;
+        private readonly ApplicationDbContext _db;
+        private readonly IMapper _mapper;
+        private readonly MappingProfile _mappingProfile;
+        private readonly UserManager<User> _userManager;
+
+        public GamesController(ApplicationDbContext appDbContext, IMapper mapper, MappingProfile mappingProfile, UserManager<User> userManager)
+        {
+            _db = appDbContext;
+            _mapper = mapper;
+            _mappingProfile = mappingProfile;
+            _userManager = userManager;
+        }
+
+        // GET: api/1.0.0/Games/List
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<GameDto>>> List(
+            [FromQuery] int? categoryId,
+            [FromQuery] decimal? minPrice,
+            [FromQuery] decimal? maxPrice,
+            [FromQuery] string? search
+        )
+        {
+            var query = _db.Games
+                .Include(g => g.Categories)
+                .AsQueryable();
+
+            if (categoryId.HasValue)
+                query = query.Where(g => g.Categories.Any(c => c.Id == categoryId));
+
+            if (minPrice.HasValue)
+                query = query.Where(g => g.Price >= minPrice);
+
+            if (maxPrice.HasValue)
+                query = query.Where(g => g.Price <= maxPrice);
+
+            if (!string.IsNullOrWhiteSpace(search))
+                query = query.Where(g => g.Name.ToLower().Contains(search.ToLower()));
+
+            var result = await query
+                .ProjectToType<GameDto>(_mapper.Config) // Mapster
+                .ToListAsync();
+            
+            return Ok(result);
+        }
+
+        // GET: api/1.0.0/Games/Get/5
+        [HttpGet("{id:int}")]
+        public async Task<ActionResult<GameDetailDto>> Get(int id)
+        {
+            var game = await _db.Games
+                .Include(g => g.Categories)
+                .FirstOrDefaultAsync(g => g.Id == id);
+
+            if (game == null) return NotFound();
+
+            var dto = _mapper.Map<GameDetailDto>(game);
+            return Ok(dto);
+        }
+
+        // POST: api/1.0.0/Games/Create
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Create([FromBody] CreateGameDto dto)
+        {
+            var categories = await _db.Categories
+                .Where(c => dto.CategoryIds.Contains(c.Id))
+                .ToListAsync();
+
+            var game = _mapper.Map<Game>(dto);
+            game.Categories = categories;
+
+            _db.Games.Add(game);
+            await _db.SaveChangesAsync();
+
+            return CreatedAtAction(nameof(Get), new { id = game.Id }, null);
+        }
+
+        // PUT: api/1.0.0/Games/Update/5
+        [HttpPut("{id:int}")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Update(int id, [FromBody] UpdateGameDto dto)
+        {
+            var game = await _db.Games
+                .Include(g => g.Categories)
+                .FirstOrDefaultAsync(g => g.Id == id);
+
+            if (game == null) return NotFound();
+
+            _mapper.Map(dto, game);
+
+            // Mettre à jour les catégories
+            game.Categories.Clear();
+            var categories = await _db.Categories
+                .Where(c => dto.CategoryIds.Contains(c.Id))
+                .ToListAsync();
+            foreach (var category in categories)
+                game.Categories.Add(category);
+
+            await _db.SaveChangesAsync();
+            return NoContent();
+        }
+
+        // DELETE: api/1.0.0/Games/Delete/5
+        [HttpDelete("{id:int}")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Delete(int id)
+        {
+            var game = await _db.Games.FindAsync(id);
+            if (game == null) return NotFound();
+
+            _db.Games.Remove(game);
+            await _db.SaveChangesAsync();
+            return NoContent();
+        }
+
+        // GET: api/1.0.0/Games/MyPurchases
+        [HttpGet]
+        [Authorize(Roles = "Admin")]
+        public async Task<ActionResult<IEnumerable<GameDto>>> MyPurchases()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Unauthorized();
+
+            // var games = await _db.UserGamePurchases
+            //     .Where(ug => ug.UserId == user.Id)
+            //     .Include(ug => ug.Game)
+            //         .ThenInclude(g => g.Categories)
+            //     .Select(ug => new GameDto(
+            //         ug.Game.Id,
+            //         ug.Game.Name,
+            //         ug.Game.Price,
+            //         ug.Game.CurrentVersion,
+            //         ug.Game.Categories.Select(c => c.Name)
+            //     ))
+            //     .ToListAsync();
+            var query = _db.UserGamePurchases
+                .Where(ug => ug.UserId == user.Id)
+                .Include(ug => ug.Game)
+                .ThenInclude(g => g.Categories);
+            var games = await query
+                .ProjectToType<GameDto>(_mapper.Config) // Mapster
+                .ToListAsync();
+
+            return Ok(games);
+        }
     }
 }

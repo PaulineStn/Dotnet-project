@@ -48,31 +48,64 @@ namespace Gauniv.WebServer.Services
             this.serviceProvider = serviceProvider;
         }
 
-        public Task StartAsync(CancellationToken cancellationToken)
+        public async Task StartAsync(CancellationToken cancellationToken)
         {
             using (var scope = serviceProvider.CreateScope()) // this will use `IServiceScopeFactory` internally
             {
-                applicationDbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
-                var userSignInManager = scope.ServiceProvider.GetService<UserManager<User>>();
-                var signInManager = scope.ServiceProvider.GetService<SignInManager<User>>();
+                applicationDbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+                var userManager = scope.ServiceProvider.GetRequiredService<UserManager<User>>();
+                // var signInManager = scope.ServiceProvider.GetService<SignInManager<User>>();
+                var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+
 
                 if (applicationDbContext is null)
                 {
                     throw new Exception("ApplicationDbContext is null");
                 }
-
-                var r = userSignInManager?.CreateAsync(new User()
+                
+                 // 1️⃣ Créer le rôle Admin s'il n'existe pas
+                if (!await roleManager.RoleExistsAsync("Admin"))
                 {
-                    UserName = "test@test.com",
-                    Email = "test@test.com",
-                    EmailConfirmed = true
-                }, "password").Result;
+                    await roleManager.CreateAsync(new IdentityRole("Admin"));
+                }
 
-                // ....
-
-                applicationDbContext.SaveChanges();
-
-                return Task.CompletedTask;
+                // 2️⃣ Créer un utilisateur simple
+                var userEmail = "test@test.com";
+                var user = await userManager.FindByEmailAsync(userEmail);
+                if (user == null)
+                {
+                    user = new User
+                    {
+                        UserName = userEmail,
+                        Email = userEmail,
+                        EmailConfirmed = true
+                    };
+                    await userManager.CreateAsync(user, "Password123!"); // mot de passe simple pour test
+                }
+                
+                // 3️⃣ Créer un utilisateur Admin
+                var adminEmail = "admin@test.com";
+                var admin = await userManager.FindByEmailAsync(adminEmail);
+                if (admin == null)
+                {
+                    admin = new User
+                    {
+                        UserName = adminEmail,
+                        Email = adminEmail,
+                        EmailConfirmed = true
+                    };
+                    await userManager.CreateAsync(admin, "AdminPassword123!");
+                }
+                
+                // 4️⃣ Assigner le rôle Admin
+                if (!await userManager.IsInRoleAsync(admin, "Admin"))
+                {
+                    await userManager.AddToRoleAsync(admin, "Admin");
+                }
+                
+                // 5️⃣ Sauvegarder les changements (au cas où)
+                await applicationDbContext.SaveChangesAsync();
+                
             }
         }
 
