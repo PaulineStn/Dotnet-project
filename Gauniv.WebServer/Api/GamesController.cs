@@ -66,7 +66,8 @@ namespace Gauniv.WebServer.Api
 
         // GET: api/1.0.0/Games/List
         [HttpGet]
-        [AllowAnonymous]
+        // [AllowAnonymous]
+        [ApiExplorerSettings(GroupName = "Games")]
         public async Task<ActionResult<IEnumerable<GameDto>>> GetAll(
             [FromQuery] int? categoryId,
             [FromQuery] decimal? minPrice,
@@ -98,7 +99,7 @@ namespace Gauniv.WebServer.Api
 
         // GET: api/1.0.0/Games/Get/5
         [HttpGet("{id:int}")]
-        [AllowAnonymous]
+        // [AllowAnonymous]
         public async Task<ActionResult<GameDetailDto>> Get(int id)
         {
             var game = await _db.Games
