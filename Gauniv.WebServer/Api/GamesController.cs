@@ -50,16 +50,17 @@ namespace Gauniv.WebServer.Api
     public class GamesController : ControllerBase
     {
         private readonly ApplicationDbContext _db;
-        private readonly IMapper _mapper;
         private readonly MappingProfile _mappingProfile;
+        private readonly IMapper _mapper;
         private readonly UserManager<User> _userManager;
 
-        public GamesController(ApplicationDbContext appDbContext, IMapper mapper, MappingProfile mappingProfile, UserManager<User> userManager)
+        public GamesController(ApplicationDbContext appDbContext, IMapper mapper, MappingProfile mappingProfile,
+            UserManager<User> userManager)
         {
             _db = appDbContext;
-            _mapper = mapper;
             _mappingProfile = mappingProfile;
             _userManager = userManager;
+            _mapper = mapper;
         }
 
         // GET: api/1.0.0/Games/List
@@ -88,10 +89,9 @@ namespace Gauniv.WebServer.Api
             if (!string.IsNullOrWhiteSpace(search))
                 query = query.Where(g => g.Name.ToLower().Contains(search.ToLower()));
 
-            var result = await query
-                .ProjectToType<GameDto>(_mapper.Config) // Mapster
-                .ToListAsync();
-            
+            var result = query
+                .Adapt<List<GameDto>>(_mappingProfile.Config);
+
             return Ok(result);
         }
 
@@ -106,7 +106,7 @@ namespace Gauniv.WebServer.Api
 
             if (game == null) return NotFound();
 
-            var dto = _mapper.Map<GameDetailDto>(game);
+            var dto = game.Adapt<GameDetailDto>(_mappingProfile.Config);
             return Ok(dto);
         }
 
@@ -191,11 +191,11 @@ namespace Gauniv.WebServer.Api
                 .Where(ug => ug.UserId == user.Id)
                 .Include(ug => ug.Game)
                 .ThenInclude(g => g.Categories);
-            var games = await query
-                .ProjectToType<GameDto>(_mapper.Config) // Mapster
-                .ToListAsync();
+            var result = query
+                .Adapt<List<GameDto>>(_mappingProfile.Config);
 
-            return Ok(games);
+            return Ok(result);
         }
     }
+
 }
