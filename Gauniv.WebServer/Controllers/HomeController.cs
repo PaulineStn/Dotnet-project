@@ -41,22 +41,104 @@ using X.PagedList.Extensions;
 
 namespace Gauniv.WebServer.Controllers
 {
-    public class HomeController(ILogger<HomeController> logger, ApplicationDbContext applicationDbContext, UserManager<User> userManager) : Controller
+    public class HomeController : Controller
     {
-        private readonly ILogger<HomeController> _logger = logger;
-        private readonly ApplicationDbContext applicationDbContext = applicationDbContext;
-        private readonly UserManager<User> userManager = userManager;
+        private readonly ILogger<HomeController> _logger;
+        private readonly ApplicationDbContext applicationDbContext;
+        private readonly UserManager<User> userManager;
 
-        public IActionResult Index()
+        public HomeController(ILogger<HomeController> logger, ApplicationDbContext db, UserManager<User> userManager)
         {
-            return View(new List<Game> { new() { Id = 0 } });
+            _logger = logger;
+            applicationDbContext = db;
+            this.userManager = userManager;
         }
 
+        [AllowAnonymous]
+        public async Task<IActionResult> Index()
+        {
+            var local_games = await applicationDbContext.Games
+                .AsNoTracking()
+                .OrderBy(g => g.Id)
+                .ToListAsync();
+
+            return View(local_games);        
+        }
+        [Authorize(Roles = "Admin")]
+        public IActionResult Create()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Create(Game game)
+        {
+            if (!ModelState.IsValid) return View(game);
+
+            applicationDbContext.Games.Add(game);
+            await applicationDbContext.SaveChangesAsync();
+            return RedirectToAction(nameof(Index));
+        }
+
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Edit(int id)
+        {
+            var local_game = await applicationDbContext.Games.FindAsync(id);
+            if (local_game == null) return NotFound();
+            return View(local_game);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Edit(int id, Game game)
+        {
+            if (id != game.Id) return BadRequest();
+            if (!ModelState.IsValid) return View(game);
+
+            applicationDbContext.Update(game);
+            await applicationDbContext.SaveChangesAsync();
+            return RedirectToAction(nameof(Index));
+        }
+
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Delete(int id)
+        {
+            var local_game = await applicationDbContext.Games.AsNoTracking().FirstOrDefaultAsync(g => g.Id == id);
+            if (local_game == null) return NotFound();
+            return View(local_game);
+        }
+
+        [HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> DeleteConfirmed(int id)
+        {
+            var local_game = await applicationDbContext.Games.FindAsync(id);
+            if (local_game == null) return NotFound();
+
+            applicationDbContext.Games.Remove(local_game);
+            await applicationDbContext.SaveChangesAsync();
+            return RedirectToAction(nameof(Index));
+}
+
+
+
+
+
+
+        public IActionResult Privacy()
+        {
+            return View();
+        }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
         {
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
         }
+
     }
 }

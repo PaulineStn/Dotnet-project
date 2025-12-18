@@ -48,31 +48,109 @@ namespace Gauniv.WebServer.Services
             this.serviceProvider = serviceProvider;
         }
 
-        public Task StartAsync(CancellationToken cancellationToken)
+        public async Task StartAsync(CancellationToken cancellationToken)
         {
             using (var scope = serviceProvider.CreateScope()) // this will use `IServiceScopeFactory` internally
             {
-                applicationDbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
-                var userSignInManager = scope.ServiceProvider.GetService<UserManager<User>>();
-                var signInManager = scope.ServiceProvider.GetService<SignInManager<User>>();
+                applicationDbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+                var userManager = scope.ServiceProvider.GetRequiredService<UserManager<User>>();
+                // var signInManager = scope.ServiceProvider.GetService<SignInManager<User>>();
+                var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+
 
                 if (applicationDbContext is null)
                 {
                     throw new Exception("ApplicationDbContext is null");
                 }
-
-                var r = userSignInManager?.CreateAsync(new User()
+                
+                if (applicationDbContext.Database.GetPendingMigrations().Any())
                 {
-                    UserName = "test@test.com",
-                    Email = "test@test.com",
-                    EmailConfirmed = true
-                }, "password").Result;
+                    applicationDbContext.Database.Migrate();
+                }
+                
+                 // 1️⃣ Créer le rôle Admin s'il n'existe pas
+                if (!await roleManager.RoleExistsAsync("Admin"))
+                {
+                    await roleManager.CreateAsync(new IdentityRole("Admin"));
+                }
 
-                // ....
+                // 2️⃣ Créer un utilisateur simple
+                var userEmail = "test@test.com";
+                var user = await userManager.FindByEmailAsync(userEmail);
+                if (user == null)
+                {
+                    user = new User
+                    {
+                        UserName = userEmail,
+                        Email = userEmail,
+                        EmailConfirmed = true
+                    };
+                    await userManager.CreateAsync(user, "Password123!"); // mot de passe simple pour test
+                }
+                
+                // 3️⃣ Créer un utilisateur Admin
+                var adminEmail = "admin@test.com";
+                var admin = await userManager.FindByEmailAsync(adminEmail);
+                if (admin == null)
+                {
+                    admin = new User
+                    {
+                        UserName = adminEmail,
+                        Email = adminEmail,
+                        EmailConfirmed = true
+                    };
+                    await userManager.CreateAsync(admin, "AdminPassword123!");
+                }
+                
+                // 4️⃣ Assigner le rôle Admin
+                if (!await userManager.IsInRoleAsync(admin, "Admin"))
+                {
+                    await userManager.AddToRoleAsync(admin, "Admin");
+                }
+                
+                
+                // Create Category
+                if (!applicationDbContext.Categories.Any())
+                {
+                    applicationDbContext.Categories.AddRange(
+                        new Category { Name = "Action" },
+                        new Category { Name = "RPG" },
+                        new Category { Name = "Indie" }
+                    );
+                    applicationDbContext.SaveChanges(); // pour avoir les Id
+                }
+                
+                if (!applicationDbContext.Games.Any())
+                {
+                    var local_action = applicationDbContext.Categories.First(c => c.Name == "Action");
+                    var local_rpg = applicationDbContext.Categories.First(c => c.Name == "RPG");
 
-                applicationDbContext.SaveChanges();
+                    var local_game1 = new Game
+                    {
+                        Name = "Space Blaster",
+                        Description = "Fast action shooter",
+                        Price = 19.99m,
+                        CurrentVersion = "1.0.0",
+                        Payload = Encoding.UTF8.GetBytes("FAKE_BINARY_GAME_1"),
+                        Categories = new List<Category> { local_action }
+                    };
 
-                return Task.CompletedTask;
+                    var local_game2 = new Game
+                    {
+                        Name = "Dungeon Quest",
+                        Description = "Classic RPG adventure",
+                        Price = 29.99m,
+                        CurrentVersion = "0.9.1",
+                        Payload = Encoding.UTF8.GetBytes("FAKE_BINARY_GAME_2"),
+                        Categories = new List<Category> { local_rpg }
+                    };
+
+                    applicationDbContext.Games.AddRange(local_game1, local_game2);
+                }
+
+                // 5️⃣ Sauvegarder les changements (au cas où)
+                await applicationDbContext.SaveChangesAsync();
+                
             }
         }
 

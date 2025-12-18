@@ -1,0 +1,33 @@
+@model List<Gauniv.WebServer.Data.Game>
+
+@if (User.Identity?.IsAuthenticated == true && User.IsInRole("Admin"))
+{
+    <p><a class="btn btn-success" asp-action="Create">Ajouter un jeu</a></p>
+}
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Id</th>
+            <th>Nom</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model)
+{
+        <tr>
+            <td>@item.Id</td>
+            <td>@item.Name</td>
+            <td>
+                @if (User.Identity?.IsAuthenticated == true && User.IsInRole("Admin"))
+                {
+                    <a asp-action="Edit" asp-route-id="@item.Id">Modifier</a>
+                    <span> | </span>
+                    <a asp-action="Delete" asp-route-id="@item.Id">Supprimer</a>
+                }
+            </td>
+        </tr>
+}
+    </tbody>
+</table>

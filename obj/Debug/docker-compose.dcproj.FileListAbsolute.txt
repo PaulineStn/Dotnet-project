@@ -1,0 +1,1 @@
+C:\Users\pauli\Documents\dotnet\TP3.NET\Dotnet-project\obj\Debug\docker-compose.dcproj.CoreCompileInputs.cache

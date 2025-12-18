@@ -2,22 +2,13 @@
 @using X.PagedList.Mvc.Core;
 @using X.PagedList;
 @{
-    ViewData["Title"] = "View";
+    ViewData["Title"] = "Accueil";
 }
 <link href="~/Content/PagedList.css" rel="stylesheet" type="text/css" />
-<h1>View</h1>
+<h1>Accueil</h1>
 
 <p>
-    <a asp-action="Create">Create New</a>
+    <a class="btn btn-primary" asp-controller="Games" asp-action="Index">Liste des jeux</a>
+    <a class="btn btn-secondary" asp-controller="Categories" asp-action="Index">Liste des catégories</a>
 </p>
-<table class="table">
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.Id)
-            </td>
-        </tr>
-}
-    </tbody>
-</table>
+
