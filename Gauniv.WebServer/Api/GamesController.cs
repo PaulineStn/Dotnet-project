@@ -46,7 +46,6 @@ namespace Gauniv.WebServer.Api
 {
     [Route("api/1.0.0/Games/[action]")]
     [ApiController]
-    [Authorize]
     public class GamesApiController : ControllerBase
     {
         private readonly ApplicationDbContext _db;
