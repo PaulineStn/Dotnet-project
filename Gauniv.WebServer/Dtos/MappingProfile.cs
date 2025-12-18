@@ -43,14 +43,9 @@ namespace Gauniv.WebServer.Dtos
             Config = new TypeAdapterConfig();
 
             // Game → GameDto
-            Config.NewConfig<Game, GameDto>()
-                .Map(dest => dest.Categories, 
-                    src => src.Categories.Select(c => c.Name));
-
-            // Game → GameDetailDto
-            Config.NewConfig<Game, GameDetailDto>()
-                .Map(dest => dest.Categories, 
-                    src => src.Categories.Select(c => c.Name));
+            Config.NewConfig<Game, GameDto>();
+            Config.NewConfig<Game, GameDetailDto>();
+            Config.NewConfig<Category, CategoryDto>();
 
         }
     }

@@ -5,7 +5,7 @@
         string Name,
         decimal Price,
         string CurrentVersion,
-        IEnumerable<string> Categories
+        IEnumerable<CategoryDto> Categories
     );
 
     public record GameDetailDto(
@@ -14,7 +14,7 @@
         string Description,
         decimal Price,
         string CurrentVersion,
-        IEnumerable<string> Categories
+        IEnumerable<CategoryDto> Categories
     );
 
     public record CreateGameDto(
