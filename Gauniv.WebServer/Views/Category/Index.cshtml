@@ -1,11 +1,13 @@
-<h1>Liste des jeux disponibles</h1>
+@using Gauniv.WebServer.Data
+<h1>Parcourir les catégories de jeu disponibles</h1>
 
-@model List<Gauniv.WebServer.Data.Game>
+@model List<Gauniv.WebServer.Data.Category>
+
+<p>Cliquez sur une catégorie pour voir les jeux disponibles.</p>
 
 @if (User.Identity?.IsAuthenticated == true && User.IsInRole("Admin"))
 {
-    <a class="btn btn-success" asp-controller="Games" asp-action="Create">Ajouter un jeu</a>
-    
+    <a class="btn btn-success" asp-action="Create">Ajouter une catégorie</a>    
 }
 
 <table class="table">
@@ -13,9 +15,7 @@
         <tr>
             <th>Id</th>
             <th>Nom</th>
-            <th>Prix</th>
-            <th>Description</th>
-            <th>Catégories</th>
+            <th>Liste de jeux</th>
             <th>
                 @if (User.Identity?.IsAuthenticated == true && User.IsInRole("Admin"))
                 {
@@ -26,17 +26,15 @@
         </tr>
     </thead>
     <tbody>
-@foreach (var item in Model)
+@foreach (Category item in Model)
 {
         <tr>
             <td>@item.Id</td>
             <td>@item.Name</td>
-            <td>@item.Price</td>
-            <td>@item.Description</td>
-            <td>
-                @foreach (var category in item.Categories)
+                        <td>
+                @foreach (var game in item.Games)
                 {
-                    @category.Name<br />
+                    @game.Name<br />
                 }
             </td>
             <td>

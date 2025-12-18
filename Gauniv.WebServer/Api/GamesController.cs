@@ -44,17 +44,16 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Gauniv.WebServer.Api
 {
-    // [Route("api/1.0.0/[controller]/[action]")]
-    [Route("api/1.0.0/games/[action]")]
+    [Route("api/1.0.0/Games/[action]")]
     [ApiController]
-    public class GamesController : ControllerBase
+    public class GamesApiController : ControllerBase
     {
         private readonly ApplicationDbContext _db;
         private readonly MappingProfile _mappingProfile;
         private readonly IMapper _mapper;
         private readonly UserManager<User> _userManager;
 
-        public GamesController(ApplicationDbContext appDbContext, IMapper mapper, MappingProfile mappingProfile,
+        public GamesApiController(ApplicationDbContext appDbContext, IMapper mapper, MappingProfile mappingProfile,
             UserManager<User> userManager)
         {
             _db = appDbContext;
