@@ -1,22 +1,14 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Gauniv.Client.Pages;
-using Gauniv.Client.Services;
-using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Gauniv.Network;
 
 namespace Gauniv.Client.ViewModel
 {
     public partial class IndexViewModel: ObservableObject
     {
         [ObservableProperty]
-        private ObservableCollection<Game> games;
+        private ObservableCollection<GameDto> games;
 
         public IndexViewModel()
         {
@@ -25,11 +17,29 @@ namespace Gauniv.Client.ViewModel
 
         private void LoadGames()
         {
-            Games = new ObservableCollection<Game>
+            
+            var httpClient = new HttpClient
             {
-                new Game { Title = "Jeu 1", ImagePath = "jeu1.jpg" ,Description="lorem ipsum"},
-                new Game { Title = "Jeu 2", ImagePath = "jeu2.jpg",Description="lorem ipsum" },
+                BaseAddress = new Uri("http://localhost:5231")
             };
+            
+            var api = new ApiClient(httpClient);
+                
+            var games = api.GetAllAsync(
+                categoryId: null,
+                minPrice: null,
+                maxPrice: null,
+                search: null
+            );
+            
+            Console.WriteLine($"games: {games.Result}");
+
+            Games = new ObservableCollection<GameDto>(games.Result);
+            // Games = new ObservableCollection<Game>
+            // {
+            //     new Game { Title = "Jeu 1", ImagePath = "jeu1.jpg" ,Description="lorem ipsum"},
+            //     new Game { Title = "Jeu 2", ImagePath = "jeu2.jpg",Description="lorem ipsum" },
+            // };
         }
 
         [RelayCommand]

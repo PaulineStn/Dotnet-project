@@ -44,7 +44,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Gauniv.WebServer.Api
 {
-    [Route("api/1.0.0/[controller]/[action]")]
+    // [Route("api/1.0.0/[controller]/[action]")]
+    [Route("api/1.0.0/games/[action]")]
     [ApiController]
     [Authorize] // ← toutes les actions nécessitent un utilisateur connecté
     public class GamesController : ControllerBase
@@ -66,7 +67,7 @@ namespace Gauniv.WebServer.Api
         // GET: api/1.0.0/Games/List
         [HttpGet]
         [AllowAnonymous]
-        public async Task<ActionResult<IEnumerable<GameDto>>> List(
+        public async Task<ActionResult<IEnumerable<GameDto>>> GetAll(
             [FromQuery] int? categoryId,
             [FromQuery] decimal? minPrice,
             [FromQuery] decimal? maxPrice,

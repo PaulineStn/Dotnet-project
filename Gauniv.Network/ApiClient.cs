@@ -1149,15 +1149,15 @@ namespace Gauniv.Network
 
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual System.Threading.Tasks.Task<System.Collections.Generic.ICollection<GameDto>> ListAsync(int? categoryId, double? minPrice, double? maxPrice, string search)
+        public virtual System.Threading.Tasks.Task<System.Collections.Generic.ICollection<GameDto>> GetAllAsync(int? categoryId, double? minPrice, double? maxPrice, string search)
         {
-            return ListAsync(categoryId, minPrice, maxPrice, search, System.Threading.CancellationToken.None);
+            return GetAllAsync(categoryId, minPrice, maxPrice, search, System.Threading.CancellationToken.None);
         }
 
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<GameDto>> ListAsync(int? categoryId, double? minPrice, double? maxPrice, string search, System.Threading.CancellationToken cancellationToken)
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<GameDto>> GetAllAsync(int? categoryId, double? minPrice, double? maxPrice, string search, System.Threading.CancellationToken cancellationToken)
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -1170,8 +1170,8 @@ namespace Gauniv.Network
 
                     var urlBuilder_ = new System.Text.StringBuilder();
                     if (!string.IsNullOrEmpty(_baseUrl)) urlBuilder_.Append(_baseUrl);
-                    // Operation Path: "api/1.0.0/Games/List"
-                    urlBuilder_.Append("api/1.0.0/Games/List");
+                    // Operation Path: "api/1.0.0/games/GetAll"
+                    urlBuilder_.Append("api/1.0.0/games/GetAll");
                     urlBuilder_.Append('?');
                     if (categoryId != null)
                     {
@@ -1269,8 +1269,8 @@ namespace Gauniv.Network
 
                     var urlBuilder_ = new System.Text.StringBuilder();
                     if (!string.IsNullOrEmpty(_baseUrl)) urlBuilder_.Append(_baseUrl);
-                    // Operation Path: "api/1.0.0/Games/Get/{id}"
-                    urlBuilder_.Append("api/1.0.0/Games/Get/");
+                    // Operation Path: "api/1.0.0/games/Get/{id}"
+                    urlBuilder_.Append("api/1.0.0/games/Get/");
                     urlBuilder_.Append(System.Uri.EscapeDataString(ConvertToString(id, System.Globalization.CultureInfo.InvariantCulture)));
 
                     PrepareRequest(client_, request_, urlBuilder_);
@@ -1354,8 +1354,8 @@ namespace Gauniv.Network
 
                     var urlBuilder_ = new System.Text.StringBuilder();
                     if (!string.IsNullOrEmpty(_baseUrl)) urlBuilder_.Append(_baseUrl);
-                    // Operation Path: "api/1.0.0/Games/Create"
-                    urlBuilder_.Append("api/1.0.0/Games/Create");
+                    // Operation Path: "api/1.0.0/games/Create"
+                    urlBuilder_.Append("api/1.0.0/games/Create");
 
                     PrepareRequest(client_, request_, urlBuilder_);
 
@@ -1436,8 +1436,8 @@ namespace Gauniv.Network
 
                     var urlBuilder_ = new System.Text.StringBuilder();
                     if (!string.IsNullOrEmpty(_baseUrl)) urlBuilder_.Append(_baseUrl);
-                    // Operation Path: "api/1.0.0/Games/Update/{id}"
-                    urlBuilder_.Append("api/1.0.0/Games/Update/");
+                    // Operation Path: "api/1.0.0/games/Update/{id}"
+                    urlBuilder_.Append("api/1.0.0/games/Update/");
                     urlBuilder_.Append(System.Uri.EscapeDataString(ConvertToString(id, System.Globalization.CultureInfo.InvariantCulture)));
 
                     PrepareRequest(client_, request_, urlBuilder_);
@@ -1512,8 +1512,8 @@ namespace Gauniv.Network
 
                     var urlBuilder_ = new System.Text.StringBuilder();
                     if (!string.IsNullOrEmpty(_baseUrl)) urlBuilder_.Append(_baseUrl);
-                    // Operation Path: "api/1.0.0/Games/Delete/{id}"
-                    urlBuilder_.Append("api/1.0.0/Games/Delete/");
+                    // Operation Path: "api/1.0.0/games/Delete/{id}"
+                    urlBuilder_.Append("api/1.0.0/games/Delete/");
                     urlBuilder_.Append(System.Uri.EscapeDataString(ConvertToString(id, System.Globalization.CultureInfo.InvariantCulture)));
 
                     PrepareRequest(client_, request_, urlBuilder_);
@@ -1586,8 +1586,8 @@ namespace Gauniv.Network
 
                     var urlBuilder_ = new System.Text.StringBuilder();
                     if (!string.IsNullOrEmpty(_baseUrl)) urlBuilder_.Append(_baseUrl);
-                    // Operation Path: "api/1.0.0/Games/MyPurchases"
-                    urlBuilder_.Append("api/1.0.0/Games/MyPurchases");
+                    // Operation Path: "api/1.0.0/games/MyPurchases"
+                    urlBuilder_.Append("api/1.0.0/games/MyPurchases");
 
                     PrepareRequest(client_, request_, urlBuilder_);
 
