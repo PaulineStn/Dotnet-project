@@ -65,12 +65,18 @@ public class GamesController : Controller
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Edit(int id, Game game)
     {
-        if (id != game.Id) return BadRequest();
-        if (!ModelState.IsValid) return View(game);
+    if (id != game.Id) return BadRequest();
+    if (!ModelState.IsValid) return View(game);
 
-        _db.Update(game);
-        await _db.SaveChangesAsync();
-        return RedirectToAction(nameof(Index));
+    var local_game = await _db.Games.FirstOrDefaultAsync(g => g.Id == id);
+    if (local_game == null) return NotFound();
+
+    local_game.Name = game.Name;
+    local_game.Price = game.Price;
+    local_game.CurrentVersion = game.CurrentVersion;
+
+    await _db.SaveChangesAsync();
+    return RedirectToAction(nameof(Index));
     }
 
     [Authorize(Roles = "Admin")]

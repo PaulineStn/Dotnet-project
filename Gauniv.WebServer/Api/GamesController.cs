@@ -44,17 +44,17 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Gauniv.WebServer.Api
 {
-    // [Route("api/1.0.0/[controller]/[action]")]
-    [Route("api/1.0.0/games/[action]")]
+    [Route("api/1.0.0/Games/[action]")]
     [ApiController]
-    public class GamesController : ControllerBase
+    [Authorize]
+    public class GamesApiController : ControllerBase
     {
         private readonly ApplicationDbContext _db;
         private readonly MappingProfile _mappingProfile;
         private readonly IMapper _mapper;
         private readonly UserManager<User> _userManager;
 
-        public GamesController(ApplicationDbContext appDbContext, IMapper mapper, MappingProfile mappingProfile,
+        public GamesApiController(ApplicationDbContext appDbContext, IMapper mapper, MappingProfile mappingProfile,
             UserManager<User> userManager)
         {
             _db = appDbContext;
@@ -66,22 +66,19 @@ namespace Gauniv.WebServer.Api
         // GET: api/1.0.0/Games/List
         [HttpGet]
         [AllowAnonymous]
-        public async Task<ActionResult<IEnumerable<GameDto>>> GetAll(
-            [FromQuery] int[]? category,
+        public async Task<ActionResult<IEnumerable<GameDto>>> List(
+            [FromQuery] int? categoryId,
             [FromQuery] decimal? minPrice,
             [FromQuery] decimal? maxPrice,
-            [FromQuery] string? search,
-            [FromQuery] int offset = 0,
-            [FromQuery] int limit = 20
+            [FromQuery] string? search
         )
         {
             var query = _db.Games
                 .Include(g => g.Categories)
                 .AsQueryable();
 
-            // Filtrer par catégorie
-            if (category?.Length > 0)
-                query = query.Where(g => g.Categories.Any(c => category.Contains(c.Id)));
+            if (categoryId.HasValue)
+                query = query.Where(g => g.Categories.Any(c => c.Id == categoryId));
 
             if (minPrice.HasValue)
                 query = query.Where(g => g.Price >= minPrice);
@@ -91,12 +88,6 @@ namespace Gauniv.WebServer.Api
 
             if (!string.IsNullOrWhiteSpace(search))
                 query = query.Where(g => g.Name.ToLower().Contains(search.ToLower()));
-            
-            // Pagination
-            query = query
-                .OrderBy(g => g.Name)
-                .Skip(offset)
-                .Take(limit);
 
             var result = query
                 .Adapt<List<GameDto>>(_mappingProfile.Config);
@@ -179,45 +170,27 @@ namespace Gauniv.WebServer.Api
         // GET: api/1.0.0/Games/MyPurchases
         [HttpGet]
         [Authorize]
-        public async Task<ActionResult<IEnumerable<GameDto>>> MyPurchases(
-            [FromQuery] int[]? category,
-            [FromQuery] decimal? minPrice,
-            [FromQuery] decimal? maxPrice,
-            [FromQuery] string? search,
-            [FromQuery] int offset = 0,
-            [FromQuery] int limit = 20
-            )
+        public async Task<ActionResult<IEnumerable<GameDto>>> MyPurchases()
         {
             var user = await _userManager.GetUserAsync(User);
             if (user == null) return Unauthorized();
 
-            
-            // Récupérer uniquement les jeux du user
+            // var games = await _db.UserGamePurchases
+            //     .Where(ug => ug.UserId == user.Id)
+            //     .Include(ug => ug.Game)
+            //         .ThenInclude(g => g.Categories)
+            //     .Select(ug => new GameDto(
+            //         ug.Game.Id,
+            //         ug.Game.Name,
+            //         ug.Game.Price,
+            //         ug.Game.CurrentVersion,
+            //         ug.Game.Categories.Select(c => c.Name)
+            //     ))
+            //     .ToListAsync();
             var query = _db.UserGamePurchases
                 .Where(ug => ug.UserId == user.Id)
-                .Select(ug => ug.Game)          // <-- IMPORTANT : on passe aux jeux
-                .Include(g => g.Categories)
-                .AsQueryable();
-            
-            // Filtrer par catégorie
-            if (category?.Length > 0)
-                query = query.Where(g => g.Categories.Any(c => category.Contains(c.Id)));
-
-            if (minPrice.HasValue)
-                query = query.Where(g => g.Price >= minPrice);
-
-            if (maxPrice.HasValue)
-                query = query.Where(g => g.Price <= maxPrice);
-
-            if (!string.IsNullOrWhiteSpace(search))
-                query = query.Where(g => g.Name.ToLower().Contains(search.ToLower()));
-            
-            // Pagination
-            query = query
-                .OrderBy(g => g.Name)
-                .Skip(offset)
-                .Take(limit);
-            
+                .Include(ug => ug.Game)
+                .ThenInclude(g => g.Categories);
             var result = query
                 .Adapt<List<GameDto>>(_mappingProfile.Config);
 

@@ -1,0 +1,29 @@
+@model Gauniv.WebServer.Data.Game
+
+<h1>Modifier le jeu</h1>
+
+<form asp-action="Edit" asp-route-id="@Model.Id" method="post">
+    @Html.AntiForgeryToken()
+    <input type="hidden" asp-for="Id" />
+
+    <div class="mb-3">
+        <label asp-for="Name"></label>
+        <input asp-for="Name" class="form-control" />
+        <span asp-validation-for="Name" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Price"></label>
+        <input asp-for="Price" class="form-control" />
+        <span asp-validation-for="Price" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="CurrentVersion"></label>
+        <input asp-for="CurrentVersion" class="form-control" />
+        <span asp-validation-for="CurrentVersion" class="text-danger"></span>
+    </div>
+
+    <button class="btn btn-primary" type="submit">Enregistrer</button>
+    <a class="btn btn-secondary" asp-action="Index">Annuler</a>
+</form>
