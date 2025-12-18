@@ -4,6 +4,7 @@
 @{
     ViewData["Title"] = "View";
 }
+<!-- DEBUG: HOME/INDEX -->
 <link href="~/Content/PagedList.css" rel="stylesheet" type="text/css" />
 <h1>View</h1>
 
@@ -11,13 +12,28 @@
     <a asp-action="Create">Create New</a>
 </p>
 <table class="table">
+    <thead>
+        <tr>
+            <th>Id</th>
+            <th>Nom</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
     <tbody>
 @foreach (var item in Model) {
         <tr>
+            <td>@item.Id</td>
+            <td>@item.Name</td>
             <td>
                 @Html.DisplayFor(modelItem => item.Id)
+            </td>
+            <td>
+                <a asp-action="Edit" asp-route-id="@item.Id">Modifier</a> |
+                <a asp-action="Delete" asp-route-id="@item.Id">Supprimer</a>
             </td>
         </tr>
 }
     </tbody>
 </table>
+
+

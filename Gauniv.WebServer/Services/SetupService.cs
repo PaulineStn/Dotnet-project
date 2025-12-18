@@ -73,8 +73,44 @@ namespace Gauniv.WebServer.Services
                     EmailConfirmed = true
                 }, "password").Result;
 
-                // ....
-                
+                if (!applicationDbContext.Categories.Any())
+                {
+                    applicationDbContext.Categories.AddRange(
+                        new Category { Name = "Action" },
+                        new Category { Name = "RPG" },
+                        new Category { Name = "Indie" }
+                    );
+                    applicationDbContext.SaveChanges(); // pour avoir les Id
+                }
+
+                if (!applicationDbContext.Games.Any())
+                {
+                    var local_action = applicationDbContext.Categories.First(c => c.Name == "Action");
+                    var local_rpg = applicationDbContext.Categories.First(c => c.Name == "RPG");
+
+                    var local_game1 = new Game
+                    {
+                        Name = "Space Blaster",
+                        Description = "Fast action shooter",
+                        Price = 19.99m,
+                        CurrentVersion = "1.0.0",
+                        Payload = Encoding.UTF8.GetBytes("FAKE_BINARY_GAME_1"),
+                        GameCategories = new List<Category> { local_action }
+                    };
+
+                    var local_game2 = new Game
+                    {
+                        Name = "Dungeon Quest",
+                        Description = "Classic RPG adventure",
+                        Price = 29.99m,
+                        CurrentVersion = "0.9.1",
+                        Payload = Encoding.UTF8.GetBytes("FAKE_BINARY_GAME_2"),
+                        GameCategories = new List<Category> { local_rpg }
+                    };
+
+                    applicationDbContext.Games.AddRange(local_game1, local_game2);
+                }
+                                
 
                 applicationDbContext.SaveChanges();
 

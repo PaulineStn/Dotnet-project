@@ -43,13 +43,122 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Gauniv.WebServer.Api
 {
-    [Route("api/1.0.0/[controller]/[action]")]
+    [Route("api/1.0.0/games")]
     [ApiController]
-    public class GamesController(ApplicationDbContext appDbContext, IMapper mapper, UserManager<User> userManager, MappingProfile mp) : ControllerBase
+    public class GamesController : ControllerBase
     {
-        private readonly ApplicationDbContext appDbContext = appDbContext;
-        private readonly IMapper mapper = mapper;
-        private readonly UserManager<User> userManager = userManager;
-        private readonly MappingProfile mp = mp;
+        private readonly ApplicationDbContext appDbContext;
+        //private readonly IMapper mapper = mapper;
+        private readonly UserManager<User> userManager;
+        //private readonly MappingProfile mp = mp;
+
+        public GamesController(ApplicationDbContext appDbContext, UserManager<User> userManager)
+        {
+            this.appDbContext = appDbContext;
+            this.userManager = userManager;
+        }
+
+        [HttpGet]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetGames(
+            [FromQuery] int offset = 0,
+            [FromQuery] int limit = 15,
+            [FromQuery(Name = "category")] List<int>? categoryIds = null,
+            [FromQuery] bool owned = false)
+        {
+            if (offset < 0) offset = 0;
+            if (limit <= 0) limit = 15;
+            if (limit > 100) limit = 100;
+
+            IQueryable<Game> local_query = appDbContext.Games
+                .AsNoTracking()
+                .Include(g => g.GameCategories);
+
+            // Filtre catégories
+            if (categoryIds is { Count: > 0 })
+            {
+                local_query = local_query.Where(g => g.GameCategories.Any(c => categoryIds.Contains(c.Id)));
+            }
+
+            // Filtre "mes jeux"
+            if (owned)
+            {
+                if (!User.Identity?.IsAuthenticated ?? true) return Unauthorized();
+
+                string? local_userId = userManager.GetUserId(User);
+                local_query = local_query.Where(g => g.Purchases.Any(p => p.UserId == local_userId));
+            }
+
+            // Pagination + projection
+            var local_items = await local_query
+                .OrderBy(g => g.Id)
+                .Skip(offset)
+                .Take(limit)
+                .Select(g => new
+                {
+                    g.Id,
+                    g.Name,
+                    g.Description,
+                    g.Price,
+                    g.CurrentVersion,
+                    Categories = g.GameCategories.Select(c => new { c.Id, c.Name })
+                })
+                .ToListAsync();
+
+            return Ok(local_items);
+        }
+
+        // GET /api/1.0.0/games/{id}
+        [HttpGet("{id:int}")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetGameById(int id)
+        {
+            var local_game = await appDbContext.Games
+                .AsNoTracking()
+                .Include(g => g.GameCategories)
+                .Where(g => g.Id == id)
+                .Select(g => new
+                {
+                    g.Id,
+                    g.Name,
+                    g.Description,
+                    g.Price,
+                    g.CurrentVersion,
+                    Categories = g.GameCategories.Select(c => new { c.Id, c.Name })
+                })
+                .FirstOrDefaultAsync();
+
+            if (local_game == null) return NotFound();
+            return Ok(local_game);
+        }
+
+        // GET /api/1.0.0/games/{id}/download
+        // joueur connecté + doit posséder le jeu (sinon Forbid)
+        [HttpGet("{id:int}/download")]
+        [Authorize]
+        public async Task<IActionResult> Download(int id)
+        {
+            string? local_userId = userManager.GetUserId(User);
+
+            bool local_owned = await appDbContext.Purchases
+                .AsNoTracking()
+                .AnyAsync(p => p.UserId == local_userId && p.GameId == id);
+
+            if (!local_owned) return Forbid();
+
+            var local_payload = await appDbContext.Games
+                .AsNoTracking()
+                .Where(g => g.Id == id)
+                .Select(g => new { g.Name, g.Payload })
+                .FirstOrDefaultAsync();
+
+            if (local_payload == null) return NotFound();
+            if (local_payload.Payload == null || local_payload.Payload.Length == 0) return NotFound("Game binary not found.");
+
+            var local_fileName = $"{local_payload.Name}.bin";
+
+            // enableRangeProcessing aide pour reprendre un téléchargement,
+            return File(local_payload.Payload, "application/octet-stream", local_fileName, enableRangeProcessing: true);
+        }
     }
 }
