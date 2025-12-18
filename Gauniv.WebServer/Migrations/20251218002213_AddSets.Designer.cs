@@ -12,20 +12,20 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Gauniv.WebServer.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20251217171132_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20251218002213_AddSets")]
+    partial class AddSets
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.1")
+                .HasAnnotation("ProductVersion", "10.0.0")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("GameCategory", b =>
+            modelBuilder.Entity("GameCategories", b =>
                 {
                     b.Property<int>("CategoryId")
                         .HasColumnType("integer");
@@ -37,7 +37,7 @@ namespace Gauniv.WebServer.Migrations
 
                     b.HasIndex("GameId");
 
-                    b.ToTable("GameCategory");
+                    b.ToTable("GameCategories");
                 });
 
             modelBuilder.Entity("Gauniv.WebServer.Data.Category", b =>
@@ -87,24 +87,6 @@ namespace Gauniv.WebServer.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Games");
-                });
-
-            modelBuilder.Entity("Gauniv.WebServer.Data.Purchase", b =>
-                {
-                    b.Property<string>("UserId")
-                        .HasColumnType("text");
-
-                    b.Property<int>("GameId")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTime>("PurchasedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.HasKey("UserId", "GameId");
-
-                    b.HasIndex("GameId");
-
-                    b.ToTable("Purchases");
                 });
 
             modelBuilder.Entity("Gauniv.WebServer.Data.User", b =>
@@ -177,6 +159,24 @@ namespace Gauniv.WebServer.Migrations
                         .HasDatabaseName("UserNameIndex");
 
                     b.ToTable("AspNetUsers", (string)null);
+                });
+
+            modelBuilder.Entity("Gauniv.WebServer.Data.UserGamePurchase", b =>
+                {
+                    b.Property<string>("UserId")
+                        .HasColumnType("text");
+
+                    b.Property<int>("GameId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("PurchasedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("UserId", "GameId");
+
+                    b.HasIndex("GameId");
+
+                    b.ToTable("UserGamePurchases");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -311,33 +311,31 @@ namespace Gauniv.WebServer.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("GameCategory", b =>
+            modelBuilder.Entity("GameCategories", b =>
                 {
                     b.HasOne("Gauniv.WebServer.Data.Category", null)
                         .WithMany()
                         .HasForeignKey("CategoryId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("FK_GameCategory_Category_CategoryId");
+                        .IsRequired();
 
                     b.HasOne("Gauniv.WebServer.Data.Game", null)
                         .WithMany()
                         .HasForeignKey("GameId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("FK_GameCategory_Game_GameId");
+                        .IsRequired();
                 });
 
-            modelBuilder.Entity("Gauniv.WebServer.Data.Purchase", b =>
+            modelBuilder.Entity("Gauniv.WebServer.Data.UserGamePurchase", b =>
                 {
                     b.HasOne("Gauniv.WebServer.Data.Game", "Game")
-                        .WithMany("Purchases")
+                        .WithMany("UserGamePurchases")
                         .HasForeignKey("GameId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("Gauniv.WebServer.Data.User", "User")
-                        .WithMany("Purchases")
+                        .WithMany("UserGamePurchases")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -400,12 +398,12 @@ namespace Gauniv.WebServer.Migrations
 
             modelBuilder.Entity("Gauniv.WebServer.Data.Game", b =>
                 {
-                    b.Navigation("Purchases");
+                    b.Navigation("UserGamePurchases");
                 });
 
             modelBuilder.Entity("Gauniv.WebServer.Data.User", b =>
                 {
-                    b.Navigation("Purchases");
+                    b.Navigation("UserGamePurchases");
                 });
 #pragma warning restore 612, 618
         }
