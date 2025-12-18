@@ -5,10 +5,10 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Gauniv.WebServer.Controllers;
 
-public class CategorieListController : Controller
+public class CategoryController : Controller
 {
     private readonly ApplicationDbContext _db;
-    public CategorieListController(ApplicationDbContext db) => _db = db;
+    public CategoryController(ApplicationDbContext db) => _db = db;
 
     [AllowAnonymous]
     public async Task<IActionResult> Index()
