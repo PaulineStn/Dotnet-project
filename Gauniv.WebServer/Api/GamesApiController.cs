@@ -223,6 +223,72 @@ namespace Gauniv.WebServer.Api
 
             return Ok(result);
         }
+        
+        [HttpGet("{id:int}")]
+        [Authorize]
+        public async Task<IActionResult> Download(int id)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Unauthorized();
+
+            var ownsGame = await _db.UserGamePurchases
+                .AnyAsync(ug => ug.UserId == user.Id && ug.GameId == id);
+            if (!ownsGame) return Forbid();
+
+            // Charger uniquement le Payload
+            var payload = await _db.Games
+                .Where(g => g.Id == id)
+                .Select(g => g.Payload)
+                .FirstOrDefaultAsync();
+
+            if (payload == null || payload.Length == 0)
+                return NotFound();
+
+            // Streamer en utilisant MemoryStream (attention si plusieurs Go)
+            var stream = new MemoryStream(payload, writable: false);
+
+            return File(stream, "application/octet-stream", $"game_{id}.bin", enableRangeProcessing: true);
+        }
+        
+        // POST: api/1.0.0/games/purchase/5
+        [HttpPost("{gameId:int}")]
+        [Authorize]
+        public async Task<IActionResult> Purchase(int gameId)
+        {
+            // Récupérer l'utilisateur connecté
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+                return Unauthorized();
+
+            // Vérifier que le jeu existe
+            var gameExists = await _db.Games.AnyAsync(g => g.Id == gameId);
+            if (!gameExists)
+                return NotFound("Game not found.");
+
+            // Vérifier que l'utilisateur ne possède pas déjà le jeu
+            var alreadyPurchased = await _db.UserGamePurchases
+                .AnyAsync(ug => ug.UserId == user.Id && ug.GameId == gameId);
+
+            if (alreadyPurchased)
+                return Conflict("Game already purchased.");
+
+            // Créer l'achat
+            var purchase = new UserGamePurchase
+            {
+                UserId = user.Id,
+                GameId = gameId,
+                PurchasedAt = DateTime.UtcNow // si présent dans ton modèle
+            };
+
+            _db.UserGamePurchases.Add(purchase);
+            await _db.SaveChangesAsync();
+
+            return Ok(new PurchasedGameDto(
+                "Game purchased successfully",
+                gameId
+            ));
+        }
+
     }
 
 }

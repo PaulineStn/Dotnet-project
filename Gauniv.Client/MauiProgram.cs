@@ -28,6 +28,9 @@
 #endregion
 using CommunityToolkit.Maui;
 using Gauniv.Client;
+using Gauniv.Client.Repository;
+using Gauniv.Client.Repository.Api;
+using Gauniv.Client.Repository.Static;
 using Gauniv.Client.ViewModel;
 using Gauniv.Network;
 using Microsoft.Extensions.Logging;
@@ -62,6 +65,16 @@ namespace Gauniv.Client
 #if DEBUG
     		builder.Logging.AddDebug();
 #endif
+            
+            if (AppSettings.UseStaticData)
+            {
+                builder.Services.AddSingleton<IGameRepository, StaticGameRepository>();
+            }
+            else
+            {
+                builder.Services.AddSingleton<IGameRepository, ApiGameRepository>();
+            }
+
 
             var app = builder.Build();
 

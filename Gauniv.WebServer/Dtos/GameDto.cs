@@ -5,6 +5,7 @@
         string Name,
         decimal Price,
         string CurrentVersion,
+        string Description,
         IEnumerable<CategoryDto> Categories
     );
 
@@ -31,5 +32,10 @@
         decimal Price,
         string CurrentVersion,
         IEnumerable<int> CategoryIds
+    );
+
+    public record PurchasedGameDto(
+        string Message,
+        int GameId
     );
 }
