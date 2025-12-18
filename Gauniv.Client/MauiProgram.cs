@@ -27,7 +27,9 @@
 // Please respect the team's standards for any future contribution
 #endregion
 using CommunityToolkit.Maui;
-using Gauniv.Client.Services;
+using Gauniv.Client;
+using Gauniv.Client.ViewModel;
+using Gauniv.Network;
 using Microsoft.Extensions.Logging;
 
 namespace Gauniv.Client
@@ -44,6 +46,18 @@ namespace Gauniv.Client
                     fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
                     fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
                 });
+            
+            // Ajouter HttpClient pour ApiClient
+            builder.Services.AddHttpClient<ApiClient>(client =>
+            {
+                client.BaseAddress = new Uri("http://localhost:5231");
+            });
+
+            // Ajouter le ViewModel avec injection
+            builder.Services.AddTransient<IndexViewModel>();
+
+            // Ajouter la page et l’injecter
+            builder.Services.AddTransient<Pages.Index>();
 
 #if DEBUG
     		builder.Logging.AddDebug();

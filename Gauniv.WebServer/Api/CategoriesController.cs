@@ -8,7 +8,6 @@ namespace Gauniv.WebServer.Controllers;
 
 [ApiController]
 [Route("api/1.0.0/categories")]
-[Authorize]
 public class CategoriesController : ControllerBase
 {
     private readonly ApplicationDbContext _db;

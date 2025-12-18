@@ -35,19 +35,130 @@ Please respect the team's standards for any future contribution
              x:Class="Gauniv.Client.Pages.Index"
              Title="Index"
              x:DataType="vm:IndexViewModel"
-             BindingContext="{vm:IndexViewModel}">
-    <!-- 
-            A vous de créer la liste avec le bon binding. Une <ListBox>, une <CollectionView> ou autre fera l'affaire 
-            La propriété ItemsSource doit pointé vers la propiété Books de votre dataContext actuelle 
-            Utilisé ListBox.ItemTemplate pour définir comment sont affiché vos items
-            <ListBox.ItemTemplate>
-        
-            A vous de faire afficher les champs que vous voulez afficher pour savoir quel sont les livre disponible
-            <xxx Text="{Binding MyPropertyOnMyObjectBook}"/>
-            N'oublier pas non plus de rajouter un boutton (ou une autre technique) quelque part pour allez voir les détails de votre livre
-            Les propriété Command et CommandParameter pourrons vous aider ! 
-            Command="{Binding DataContext.ItemSelectedCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Page}}}" 
-            CommandParameter="{Binding .}"
-    -->
-    <Label Text="List des jeux na" />
+             BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray950}}">
+
+    <Grid RowDefinitions="Auto,*" Padding="0">
+        <!-- En-tête avec gradient -->
+        <Frame Grid.Row="0" 
+               Padding="20,30,20,20" 
+               CornerRadius="0,0,30,30"
+               HasShadow="True">
+            <Frame.Background>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                    <GradientStop Color="{StaticResource Primary}" Offset="0.0" />
+                    <GradientStop Color="{StaticResource Secondary}" Offset="1.0" />
+                </LinearGradientBrush>
+            </Frame.Background>
+            
+            <VerticalStackLayout Spacing="10">
+                <Label Text="🎮 Games Library"
+                       FontSize="28"
+                       FontAttributes="Bold"
+                       TextColor="White"
+                       HorizontalOptions="Center"/>
+                <Label Text="{Binding Games.Count, StringFormat='{0} games available'}"
+                       FontSize="14"
+                       TextColor="White"
+                       Opacity="0.8"
+                       HorizontalOptions="Center"/>
+            </VerticalStackLayout>
+        </Frame>
+
+        <!-- Liste des jeux avec design moderne -->
+        <CollectionView Grid.Row="1"
+                        ItemsSource="{Binding Games}"
+                        Margin="15"
+                        SelectionMode="None">
+            <CollectionView.ItemsLayout>
+                <LinearItemsLayout Orientation="Vertical" ItemSpacing="15"/>
+            </CollectionView.ItemsLayout>
+            
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="vm:Game">
+                    <Frame Padding="0" 
+                           CornerRadius="20" 
+                           HasShadow="True"
+                           BackgroundColor="{AppThemeBinding Light=White, Dark={StaticResource Gray900}}">
+                        <Frame.GestureRecognizers>
+                            <TapGestureRecognizer 
+                                Command="{Binding Source={RelativeSource AncestorType={x:Type vm:IndexViewModel}}, Path=SelectGameCommand}"
+                                CommandParameter="{Binding .}"/>
+                        </Frame.GestureRecognizers>
+                        
+                        <Grid ColumnDefinitions="120,*" RowDefinitions="*,Auto" HeightRequest="140">
+                            <!-- Image avec effet overlay -->
+                            <Frame Grid.RowSpan="2" 
+                                   Padding="0" 
+                                   CornerRadius="20,0,0,20"
+                                   HasShadow="False"
+                                   IsClippedToBounds="True">
+                                <Image Source="{Binding ImagePath}"
+                                       Aspect="AspectFill"/>
+                            </Frame>
+
+                            <!-- Contenu -->
+                            <VerticalStackLayout Grid.Column="1" 
+                                               Padding="15,15,15,10"
+                                               Spacing="1">
+                                <Label Text="{Binding Title}"
+                                       FontSize="20"
+                                       FontAttributes="Bold"
+                                       TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark=White}"
+                                       LineBreakMode="TailTruncation"/>
+                                
+                                <Label Text="{Binding Description}"
+                                       FontSize="14"
+                                       TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray400}}"
+                                       LineBreakMode="WordWrap"
+                                       MaxLines="2"/>
+                            </VerticalStackLayout>
+
+                            <!-- Bouton d'action flottant -->
+                                <Button Text="▶ Play"
+                                        FontSize="14"
+                                        FontAttributes="Bold"
+                                        BackgroundColor="{StaticResource Primary}"
+                                        TextColor="White"
+                                        CornerRadius="15"
+                                        HeightRequest="40"
+                                        HorizontalOptions="End"
+                                        Command="{Binding Source={RelativeSource AncestorType={x:Type vm:IndexViewModel}}, Path=SelectGameCommand}"
+                                        CommandParameter="{Binding .}"/>
+                            <Button Text="▶ V"
+                                    FontSize="14"
+                                    FontAttributes="Bold"
+                                    BackgroundColor="{StaticResource Primary}"
+                                    TextColor="White"
+                                    CornerRadius="15"
+                                    HeightRequest="40"
+                                    HorizontalOptions="End"
+                                    Command="{Binding Source={RelativeSource AncestorType={x:Type vm:IndexViewModel}}, Path=SelectGameCommand}"
+                                    CommandParameter="{Binding .}"/>
+                        </Grid>
+                    </Frame>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+            
+            <!-- Vue vide -->
+            <CollectionView.EmptyView>
+                <VerticalStackLayout VerticalOptions="Center" 
+                                   HorizontalOptions="Center"
+                                   Spacing="20"
+                                   Padding="40">
+                    <Label Text="🎮"
+                           FontSize="80"
+                           HorizontalOptions="Center"/>
+                    <Label Text="No games available"
+                           FontSize="20"
+                           FontAttributes="Bold"
+                           HorizontalTextAlignment="Center"
+                           TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray400}}"/>
+                    <Label Text="Come back later!"
+                           FontSize="14"
+                           HorizontalTextAlignment="Center"
+                           TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray500}}"/>
+                </VerticalStackLayout>
+            </CollectionView.EmptyView>
+        </CollectionView>
+    </Grid>
 </ContentPage>

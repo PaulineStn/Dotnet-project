@@ -1149,15 +1149,15 @@ namespace Gauniv.Network
 
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual System.Threading.Tasks.Task<System.Collections.Generic.ICollection<GameDto>> ListAsync(int? categoryId, double? minPrice, double? maxPrice, string search)
+        public virtual System.Threading.Tasks.Task<System.Collections.Generic.ICollection<GameDto>> GetAllAsync(System.Collections.Generic.IEnumerable<int> category, double? minPrice, double? maxPrice, string search, int? offset, int? limit)
         {
-            return ListAsync(categoryId, minPrice, maxPrice, search, System.Threading.CancellationToken.None);
+            return GetAllAsync(category, minPrice, maxPrice, search, offset, limit, System.Threading.CancellationToken.None);
         }
 
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<GameDto>> ListAsync(int? categoryId, double? minPrice, double? maxPrice, string search, System.Threading.CancellationToken cancellationToken)
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<GameDto>> GetAllAsync(System.Collections.Generic.IEnumerable<int> category, double? minPrice, double? maxPrice, string search, int? offset, int? limit, System.Threading.CancellationToken cancellationToken)
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -1170,12 +1170,12 @@ namespace Gauniv.Network
 
                     var urlBuilder_ = new System.Text.StringBuilder();
                     if (!string.IsNullOrEmpty(_baseUrl)) urlBuilder_.Append(_baseUrl);
-                    // Operation Path: "api/1.0.0/Games/List"
-                    urlBuilder_.Append("api/1.0.0/Games/List");
+                    // Operation Path: "api/1.0.0/games/GetAll"
+                    urlBuilder_.Append("api/1.0.0/games/GetAll");
                     urlBuilder_.Append('?');
-                    if (categoryId != null)
+                    if (category != null)
                     {
-                        urlBuilder_.Append(System.Uri.EscapeDataString("categoryId")).Append('=').Append(System.Uri.EscapeDataString(ConvertToString(categoryId, System.Globalization.CultureInfo.InvariantCulture))).Append('&');
+                            foreach (var item_ in category) { urlBuilder_.Append(System.Uri.EscapeDataString("category")).Append('=').Append(System.Uri.EscapeDataString(ConvertToString(item_, System.Globalization.CultureInfo.InvariantCulture))).Append('&'); }
                     }
                     if (minPrice != null)
                     {
@@ -1188,6 +1188,14 @@ namespace Gauniv.Network
                     if (search != null)
                     {
                         urlBuilder_.Append(System.Uri.EscapeDataString("search")).Append('=').Append(System.Uri.EscapeDataString(ConvertToString(search, System.Globalization.CultureInfo.InvariantCulture))).Append('&');
+                    }
+                    if (offset != null)
+                    {
+                        urlBuilder_.Append(System.Uri.EscapeDataString("offset")).Append('=').Append(System.Uri.EscapeDataString(ConvertToString(offset, System.Globalization.CultureInfo.InvariantCulture))).Append('&');
+                    }
+                    if (limit != null)
+                    {
+                        urlBuilder_.Append(System.Uri.EscapeDataString("limit")).Append('=').Append(System.Uri.EscapeDataString(ConvertToString(limit, System.Globalization.CultureInfo.InvariantCulture))).Append('&');
                     }
                     urlBuilder_.Length--;
 
@@ -1269,8 +1277,8 @@ namespace Gauniv.Network
 
                     var urlBuilder_ = new System.Text.StringBuilder();
                     if (!string.IsNullOrEmpty(_baseUrl)) urlBuilder_.Append(_baseUrl);
-                    // Operation Path: "api/1.0.0/Games/Get/{id}"
-                    urlBuilder_.Append("api/1.0.0/Games/Get/");
+                    // Operation Path: "api/1.0.0/games/Get/{id}"
+                    urlBuilder_.Append("api/1.0.0/games/Get/");
                     urlBuilder_.Append(System.Uri.EscapeDataString(ConvertToString(id, System.Globalization.CultureInfo.InvariantCulture)));
 
                     PrepareRequest(client_, request_, urlBuilder_);
@@ -1354,8 +1362,8 @@ namespace Gauniv.Network
 
                     var urlBuilder_ = new System.Text.StringBuilder();
                     if (!string.IsNullOrEmpty(_baseUrl)) urlBuilder_.Append(_baseUrl);
-                    // Operation Path: "api/1.0.0/Games/Create"
-                    urlBuilder_.Append("api/1.0.0/Games/Create");
+                    // Operation Path: "api/1.0.0/games/Create"
+                    urlBuilder_.Append("api/1.0.0/games/Create");
 
                     PrepareRequest(client_, request_, urlBuilder_);
 
@@ -1436,8 +1444,8 @@ namespace Gauniv.Network
 
                     var urlBuilder_ = new System.Text.StringBuilder();
                     if (!string.IsNullOrEmpty(_baseUrl)) urlBuilder_.Append(_baseUrl);
-                    // Operation Path: "api/1.0.0/Games/Update/{id}"
-                    urlBuilder_.Append("api/1.0.0/Games/Update/");
+                    // Operation Path: "api/1.0.0/games/Update/{id}"
+                    urlBuilder_.Append("api/1.0.0/games/Update/");
                     urlBuilder_.Append(System.Uri.EscapeDataString(ConvertToString(id, System.Globalization.CultureInfo.InvariantCulture)));
 
                     PrepareRequest(client_, request_, urlBuilder_);
@@ -1512,8 +1520,8 @@ namespace Gauniv.Network
 
                     var urlBuilder_ = new System.Text.StringBuilder();
                     if (!string.IsNullOrEmpty(_baseUrl)) urlBuilder_.Append(_baseUrl);
-                    // Operation Path: "api/1.0.0/Games/Delete/{id}"
-                    urlBuilder_.Append("api/1.0.0/Games/Delete/");
+                    // Operation Path: "api/1.0.0/games/Delete/{id}"
+                    urlBuilder_.Append("api/1.0.0/games/Delete/");
                     urlBuilder_.Append(System.Uri.EscapeDataString(ConvertToString(id, System.Globalization.CultureInfo.InvariantCulture)));
 
                     PrepareRequest(client_, request_, urlBuilder_);
@@ -1565,15 +1573,15 @@ namespace Gauniv.Network
 
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual System.Threading.Tasks.Task<System.Collections.Generic.ICollection<GameDto>> MyPurchasesAsync()
+        public virtual System.Threading.Tasks.Task<System.Collections.Generic.ICollection<GameDto>> MyPurchasesAsync(System.Collections.Generic.IEnumerable<int> category, double? minPrice, double? maxPrice, string search, int? offset, int? limit)
         {
-            return MyPurchasesAsync(System.Threading.CancellationToken.None);
+            return MyPurchasesAsync(category, minPrice, maxPrice, search, offset, limit, System.Threading.CancellationToken.None);
         }
 
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<GameDto>> MyPurchasesAsync(System.Threading.CancellationToken cancellationToken)
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<GameDto>> MyPurchasesAsync(System.Collections.Generic.IEnumerable<int> category, double? minPrice, double? maxPrice, string search, int? offset, int? limit, System.Threading.CancellationToken cancellationToken)
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -1586,8 +1594,34 @@ namespace Gauniv.Network
 
                     var urlBuilder_ = new System.Text.StringBuilder();
                     if (!string.IsNullOrEmpty(_baseUrl)) urlBuilder_.Append(_baseUrl);
-                    // Operation Path: "api/1.0.0/Games/MyPurchases"
-                    urlBuilder_.Append("api/1.0.0/Games/MyPurchases");
+                    // Operation Path: "api/1.0.0/games/MyPurchases"
+                    urlBuilder_.Append("api/1.0.0/games/MyPurchases");
+                    urlBuilder_.Append('?');
+                    if (category != null)
+                    {
+                            foreach (var item_ in category) { urlBuilder_.Append(System.Uri.EscapeDataString("category")).Append('=').Append(System.Uri.EscapeDataString(ConvertToString(item_, System.Globalization.CultureInfo.InvariantCulture))).Append('&'); }
+                    }
+                    if (minPrice != null)
+                    {
+                        urlBuilder_.Append(System.Uri.EscapeDataString("minPrice")).Append('=').Append(System.Uri.EscapeDataString(ConvertToString(minPrice, System.Globalization.CultureInfo.InvariantCulture))).Append('&');
+                    }
+                    if (maxPrice != null)
+                    {
+                        urlBuilder_.Append(System.Uri.EscapeDataString("maxPrice")).Append('=').Append(System.Uri.EscapeDataString(ConvertToString(maxPrice, System.Globalization.CultureInfo.InvariantCulture))).Append('&');
+                    }
+                    if (search != null)
+                    {
+                        urlBuilder_.Append(System.Uri.EscapeDataString("search")).Append('=').Append(System.Uri.EscapeDataString(ConvertToString(search, System.Globalization.CultureInfo.InvariantCulture))).Append('&');
+                    }
+                    if (offset != null)
+                    {
+                        urlBuilder_.Append(System.Uri.EscapeDataString("offset")).Append('=').Append(System.Uri.EscapeDataString(ConvertToString(offset, System.Globalization.CultureInfo.InvariantCulture))).Append('&');
+                    }
+                    if (limit != null)
+                    {
+                        urlBuilder_.Append(System.Uri.EscapeDataString("limit")).Append('=').Append(System.Uri.EscapeDataString(ConvertToString(limit, System.Globalization.CultureInfo.InvariantCulture))).Append('&');
+                    }
+                    urlBuilder_.Length--;
 
                     PrepareRequest(client_, request_, urlBuilder_);
 
