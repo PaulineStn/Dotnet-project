@@ -30,7 +30,7 @@ namespace Gauniv.Client.ViewModel
             
             Console.WriteLine($"games: {req.Result}");
         
-        Games = new ObservableCollection<GameDto>(req.Result);
+            Games = new ObservableCollection<GameDto>(req.Result);
         // Games = new ObservableCollection<Game>
         // {
         //     new Game { Title = "Jeu 1", ImagePath = "jeu1.jpg" ,Description="lorem ipsum"},
