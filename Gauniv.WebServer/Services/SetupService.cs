@@ -221,30 +221,34 @@ namespace Gauniv.WebServer.Services
                         local_game6,
                         local_game7 };
 
+                    // Pour avoir les ID
                     applicationDbContext.Games.AddRange(games);
+                    await applicationDbContext.SaveChangesAsync();
+
+                    Console.WriteLine($"games:  {games.Count()}");
+                    foreach (var game in games)
+                    {
+                        var basePath = Path.Combine(_storageOptions.Value.GamesPath, game.Id.ToString());
+                        Directory.CreateDirectory(basePath);
+                        
+                        // Console.WriteLine($"basePath:  {basePath}");
+
+
+                        var fileName = $"game_{game.Id}_{game.CurrentVersion}.bin";
+                        var filePath = Path.Combine(basePath, fileName);
+
+                        await File.WriteAllBytesAsync(
+                            filePath,
+                            Encoding.UTF8.GetBytes($"FAKE_BINARY_{game.Name.ToUpperInvariant()}")
+                        );
+
+                        game.FilePath = filePath;
+                    }
+                    // Sauvegarder FilePath
+                    await applicationDbContext.SaveChangesAsync();
                 }
                 
-                Console.WriteLine($"games:  {games.Count()}");
-                foreach (var game in games)
-                {
-                    var basePath = Path.Combine(_storageOptions.Value.GamesPath, game.Id.ToString());
-                    Directory.CreateDirectory(basePath);
-                        
-                    // Console.WriteLine($"basePath:  {basePath}");
-
-
-                    var fileName = $"game_{game.Id}_{game.CurrentVersion}.bin";
-                    var filePath = Path.Combine(basePath, fileName);
-
-                    await File.WriteAllBytesAsync(
-                        filePath,
-                        Encoding.UTF8.GetBytes($"FAKE_BINARY_{game.Name.ToUpperInvariant()}")
-                    );
-
-                    game.FilePath = filePath;
-                }
-                // Sauvegarder FilePath
-                await applicationDbContext.SaveChangesAsync();
+                
 
                 // Achat de 3 jeux par l'utilisateur test@test.com
                 var local_userEmail = "test@test.com";

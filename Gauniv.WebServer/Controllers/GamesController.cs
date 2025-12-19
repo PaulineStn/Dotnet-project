@@ -2,6 +2,7 @@ using Gauniv.WebServer.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using System.Security.Claims;
 namespace Gauniv.WebServer.Controllers;
 
