@@ -59,17 +59,19 @@ namespace Gauniv.Client.ViewModel
             Console.WriteLine($"Game sélectionné : {game.Name}");
         }
         
-        
         [RelayCommand]
-        private void AcheterGameCommand(GameDto game)
+        private async Task AcheterGameCommandAsync(GameDto game)
         {
             if (game == null)
                 return;
 
             Console.WriteLine($"Game acheté : {game.Name}");
-    
-            // Navigation vers la page de login
-            NavigationService.Instance.Navigate<Login>(new Dictionary<string, object>());
+
+            // Navigation vers la page de login avec le jeu en paramètre
+            await NavigationService.Instance.NavigateAsync<Login>(new Dictionary<string, object>
+            {
+                { "SelectedGame", game }
+            });
         }
 
         

@@ -28,14 +28,27 @@
 #endregion
 
 using Gauniv.Client.ViewModel;
+using Gauniv.Network;
 
 namespace Gauniv.Client.Pages;
 
-public partial class Login : ContentPage
+public partial class Login : ContentPage, IQueryAttributable
 {
+    private readonly LoginViewModel _viewModel;
+    private GameDto selectedGame;
+    
     public Login(LoginViewModel viewModel)
     {
         InitializeComponent();
-        BindingContext = viewModel;
+        _viewModel = viewModel;
+        BindingContext = _viewModel;
+    }
+
+    public void ApplyQueryAttributes(IDictionary<string, object> query)
+    {
+        if (query.TryGetValue("SelectedGame", out var local_game))
+        {
+            _viewModel.SelectedGame = local_game as GameDto;
+        }
     }
 }

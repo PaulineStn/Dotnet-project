@@ -65,6 +65,19 @@ namespace Gauniv.Client.Services
             // Si vous avez une exception ici, cela veut dire que le constructeur de votre view model ne correspond pas au paramèetres que vous passez !
             await Shell.Current.GoToAsync($"{typeof(T).Name}", args);
         }
+        
+public async Task NavigateAsync<T>(Dictionary<string, object> args, bool clear = false) where T : ContentPage
+        {
+            Routing.RegisterRoute($"{typeof(T).Name}", typeof(T));
+            
+            if(clear)
+            {
+                await Shell.Current.Navigation.PopToRootAsync();
+            }
+            
+            await Shell.Current.GoToAsync($"{typeof(T).Name}", args);
+        }
+        
 
     }
 }

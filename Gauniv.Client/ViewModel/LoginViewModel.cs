@@ -30,6 +30,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Gauniv.Client.Services;
+using Gauniv.Network;
 
 namespace Gauniv.Client.ViewModel
 {
@@ -40,6 +41,10 @@ namespace Gauniv.Client.ViewModel
 
         [ObservableProperty]
         private string password;
+        
+        [ObservableProperty]
+        private GameDto selectedGame;
+        
 
         [ObservableProperty]
         private string errorMessage;
