@@ -40,6 +40,7 @@ using System.ComponentModel.DataAnnotations;
 using MapsterMapper;
 using Mapster;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 
 
 namespace Gauniv.WebServer.Api
@@ -53,14 +54,16 @@ namespace Gauniv.WebServer.Api
         private readonly MappingProfile _mappingProfile;
         private readonly IMapper _mapper;
         private readonly UserManager<User> _userManager;
+        private readonly IOptions<StorageOptions> _storageOptions;
 
         public GamesApiController(ApplicationDbContext appDbContext, IMapper mapper, MappingProfile mappingProfile,
-            UserManager<User> userManager)
+            UserManager<User> userManager, IOptions<StorageOptions> storageOptions)
         {
             _db = appDbContext;
             _mappingProfile = mappingProfile;
             _userManager = userManager;
             _mapper = mapper;
+            _storageOptions =  storageOptions;
         }
 
         // GET: api/1.0.0/Games/List
@@ -123,41 +126,109 @@ namespace Gauniv.WebServer.Api
         //Admin only
         [HttpPost]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Create([FromBody] CreateGameDto dto)
+        [RequestSizeLimit(long.MaxValue)]
+        public async Task<IActionResult> Create(
+            [FromForm] CreateGameDto dto,
+            [FromForm] IFormFile file)
         {
-            var categories = await _db.Categories
-                .Where(c => dto.CategoryIds.Contains(c.Id))
-                .ToListAsync();
+            if (file == null || file.Length == 0)
+                return BadRequest("File is required");
 
             var game = _mapper.Map<Game>(dto);
-            game.Categories = categories;
 
             _db.Games.Add(game);
+            await _db.SaveChangesAsync(); // pour avoir l'Id
+
+            var basePath = Path.Combine(_storageOptions.Value.GamesPath, game.Id.ToString());
+            if (!Directory.Exists(basePath))
+            {
+                Directory.CreateDirectory(basePath);
+            }
+
+            var filePath = Path.Combine(basePath, file.FileName);
+
+            await using var stream = new FileStream(
+                filePath,
+                FileMode.Create,
+                FileAccess.Write,
+                FileShare.None,
+                bufferSize: 81920,
+                useAsync: true);
+
+            await file.CopyToAsync(stream);
+
+            game.FilePath = filePath;
             await _db.SaveChangesAsync();
 
             return CreatedAtAction(nameof(Get), new { id = game.Id }, null);
         }
 
+
         // PUT: api/1.0.0/Games/Update/5
         [HttpPut("{id:int}")]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Update(int id, [FromBody] UpdateGameDto dto)
+        [RequestSizeLimit(long.MaxValue)]
+        public async Task<IActionResult> Update(
+            int id,
+            [FromForm] UpdateGameDto dto,
+            [FromForm] IFormFile? file)
         {
             var game = await _db.Games
                 .Include(g => g.Categories)
                 .FirstOrDefaultAsync(g => g.Id == id);
 
-            if (game == null) return NotFound();
+            if (game == null)
+                return NotFound();
 
+            // 1️⃣ Update des champs simples
             _mapper.Map(dto, game);
 
-            // Mettre à jour les catégories
+            // 2️⃣ Update des catégories
             game.Categories.Clear();
             var categories = await _db.Categories
                 .Where(c => dto.CategoryIds.Contains(c.Id))
                 .ToListAsync();
+
             foreach (var category in categories)
                 game.Categories.Add(category);
+
+            // 3️⃣ Update du fichier (si fourni)
+            if (file != null && file.Length > 0)
+            {
+                var basePath = Path.Combine(
+                    _storageOptions.Value.GamesPath,
+                    game.Id.ToString());
+
+                Directory.CreateDirectory(basePath);
+
+                var newFilePath = Path.Combine(
+                    basePath,
+                    file.FileName + ".tmp");
+
+                // Écriture sécurisée
+                await using (var stream = new FileStream(
+                                 newFilePath,
+                                 FileMode.Create,
+                                 FileAccess.Write,
+                                 FileShare.None,
+                                 bufferSize: 81920,
+                                 useAsync: true))
+                {
+                    await file.CopyToAsync(stream);
+                }
+
+                // Remplacer atomiquement
+                if (!string.IsNullOrEmpty(game.FilePath) &&
+                    System.IO.File.Exists(game.FilePath))
+                {
+                    System.IO.File.Delete(game.FilePath);
+                }
+
+                var finalPath = Path.Combine(basePath, file.FileName);
+                System.IO.File.Move(newFilePath, finalPath);
+
+                game.FilePath = finalPath;
+            }
 
             await _db.SaveChangesAsync();
             return NoContent();
@@ -235,20 +306,29 @@ namespace Gauniv.WebServer.Api
                 .AnyAsync(ug => ug.UserId == user.Id && ug.GameId == id);
             if (!ownsGame) return Forbid();
 
-            // Charger uniquement le Payload
-            var payload = await _db.Games
+            var game = await _db.Games
                 .Where(g => g.Id == id)
-                .Select(g => g.Payload)
+                .Select(g => new { g.FilePath, g.Name })
                 .FirstOrDefaultAsync();
 
-            if (payload == null || payload.Length == 0)
+            if (game == null || !System.IO.File.Exists(game.FilePath))
                 return NotFound();
 
-            // Streamer en utilisant MemoryStream (attention si plusieurs Go)
-            var stream = new MemoryStream(payload, writable: false);
+            var stream = new FileStream(
+                game.FilePath,
+                FileMode.Open,
+                FileAccess.Read,
+                FileShare.Read,
+                bufferSize: 81920,
+                useAsync: true);
 
-            return File(stream, "application/octet-stream", $"game_{id}.bin", enableRangeProcessing: true);
+            return File(
+                stream,
+                "application/octet-stream",
+                Path.GetFileName(game.FilePath),
+                enableRangeProcessing: true);
         }
+
         
         // POST: api/1.0.0/games/purchase/5
         [HttpPost("{gameId:int}")]

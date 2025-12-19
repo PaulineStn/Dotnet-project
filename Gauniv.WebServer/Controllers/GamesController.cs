@@ -2,6 +2,7 @@ using Gauniv.WebServer.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Identity;
 
@@ -10,7 +11,12 @@ namespace Gauniv.WebServer.Controllers;
 public class GamesController : Controller
 {
     private readonly ApplicationDbContext _db;
-    public GamesController(ApplicationDbContext db) => _db = db;
+    public GamesController(ApplicationDbContext db, IOptions<StorageOptions> storageOptions) {
+        _db = db;
+        _storageOptions = storageOptions;
+    }
+    private readonly IOptions<StorageOptions> _storageOptions;
+
 
     [AllowAnonymous]
     public async Task<IActionResult> Index(int? categoryId, decimal? minPrice, decimal? maxPrice, string? search)
@@ -60,7 +66,8 @@ public class GamesController : Controller
             ModelState.AddModelError("Categories", "Choisissez au moins une catégorie.");
 
         if (payloadFile == null || payloadFile.Length == 0)
-        ModelState.AddModelError("payloadFile", "Veuillez sélectionner un fichier payload.");
+            ModelState.AddModelError(nameof(payloadFile), "Veuillez sélectionner un fichier payload.");
+        
 
         if (!ModelState.IsValid)
         {
@@ -68,16 +75,37 @@ public class GamesController : Controller
             await PopulateCategoriesAsync();
             return View(game);
         }
-
-        using (var ms = new MemoryStream())
-        {
-            await payloadFile!.CopyToAsync(ms);
-            game.Payload = ms.ToArray();
-        }
-
+        
         game.Categories = local_categories;
         _db.Games.Add(game);
         await _db.SaveChangesAsync();
+        
+        // 2️⃣ Stockage du fichier sur disque (streaming)
+        var basePath = Path.Combine(
+            _storageOptions.Value.GamesPath,
+            game.Id.ToString());
+
+        Directory.CreateDirectory(basePath);
+
+        // Nom de fichier maîtrisé
+        var safeFileName = $"game_{game.Id}_{game.CurrentVersion}.bin";
+        var filePath = Path.Combine(basePath, safeFileName);
+
+        await using (var fileStream = new FileStream(
+                         filePath,
+                         FileMode.Create,
+                         FileAccess.Write,
+                         FileShare.None,
+                         bufferSize: 81920,
+                         useAsync: true))
+        {
+            await payloadFile.CopyToAsync(fileStream);
+        }
+
+        // 3️⃣ Mise à jour du chemin
+        game.FilePath = filePath;
+        await _db.SaveChangesAsync();
+        
         return RedirectToAction(nameof(Index));
     }
 

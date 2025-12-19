@@ -43,8 +43,9 @@ namespace Gauniv.WebServer.Data
 
         public string Description { get; set; } =  string.Empty;
 
-        public byte[] Payload { get; set; } = Array.Empty<byte>();
-
+        // Chemin absolu ou relatif vers le fichier
+        public string FilePath { get; set; } = string.Empty;
+        
         public decimal Price { get; set; }
 
         public string CurrentVersion { get; set; } = string.Empty;

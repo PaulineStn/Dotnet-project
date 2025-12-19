@@ -32,6 +32,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pages;
 using System.Text;
 
@@ -42,10 +43,12 @@ namespace Gauniv.WebServer.Services
         private ApplicationDbContext? applicationDbContext;
         private readonly IServiceProvider serviceProvider;
         private Task? task;
+        private readonly IOptions<StorageOptions> _storageOptions;
 
-        public SetupService(IServiceProvider serviceProvider)
+        public SetupService(IServiceProvider serviceProvider, IOptions<StorageOptions> storageOptions)
         {
             this.serviceProvider = serviceProvider;
+            _storageOptions = storageOptions;
         }
 
         public async Task StartAsync(CancellationToken cancellationToken)
@@ -153,7 +156,6 @@ namespace Gauniv.WebServer.Services
                         Description = "Fast action shooter",
                         Price = 19.99m,
                         CurrentVersion = "1.0.0",
-                        Payload = Encoding.UTF8.GetBytes("FAKE_BINARY_SPACE_BLASTER"),                        
                         Categories = new List<Category> { local_action }
                     };
 
@@ -163,7 +165,6 @@ namespace Gauniv.WebServer.Services
                         Description = "Classic fantasy RPG with turn-based combat",
                         Price = 29.99m,
                         CurrentVersion = "0.9.1",
-                        Payload = Encoding.UTF8.GetBytes("FAKE_BINARY_DUNGEON_QUEST"),
                         Categories = new List<Category> { local_rpg }
                     };
 
@@ -173,7 +174,6 @@ namespace Gauniv.WebServer.Services
                         Description = "Relaxing indie farming simulation",
                         Price = 14.99m,
                         CurrentVersion = "1.2.3",
-                        Payload = Encoding.UTF8.GetBytes("FAKE_BINARY_PIXEL_FARM"),
                         Categories = new List<Category> { local_indie, local_simulation }
                     };
                     
@@ -183,7 +183,6 @@ namespace Gauniv.WebServer.Services
                         Description = "Build and manage your own interstellar empire",
                         Price = 39.99m,
                         CurrentVersion = "2.0.0",
-                        Payload = Encoding.UTF8.GetBytes("FAKE_BINARY_EMPIRE_ARCHITECT"),
                         Categories = new List<Category> { local_strategy }
                     };
 
@@ -193,7 +192,6 @@ namespace Gauniv.WebServer.Services
                         Description = "Psychological horror experience in an abandoned asylum",
                         Price = 24.99m,
                         CurrentVersion = "1.1.0",
-                        Payload = Encoding.UTF8.GetBytes("FAKE_BINARY_NIGHTFALL_ASYLUM"),
                         Categories = new List<Category> { local_horror }
                     };
 
@@ -203,7 +201,6 @@ namespace Gauniv.WebServer.Services
                         Description = "Competitive multiplayer arena battles",
                         Price = 0.00m,
                         CurrentVersion = "3.4.5",
-                        Payload = Encoding.UTF8.GetBytes("FAKE_BINARY_BATTLE_ARENA"),
                         Categories = new List<Category> { local_action, local_multiplayer }
                     };
 
@@ -213,22 +210,45 @@ namespace Gauniv.WebServer.Services
                         Description = "Challenging logic puzzles to train your brain",
                         Price = 9.99m,
                         CurrentVersion = "1.0.2",
-                        Payload = Encoding.UTF8.GetBytes("FAKE_BINARY_MIND_BLOCKS"),
                         Categories = new List<Category> { local_puzzle, local_indie }
                     };
-
-                    applicationDbContext.Games.AddRange(
-                        local_game1,
+                    
+                    var games = new[] { local_game1,
                         local_game2,
                         local_game3,
                         local_game4,
                         local_game5,
                         local_game6,
-                        local_game7);
-                }
+                        local_game7 };
 
-                // Sauvegarder les changements (au cas où)
-                await applicationDbContext.SaveChangesAsync();
+                    // Pour avoir les ID
+                    applicationDbContext.Games.AddRange(games);
+                    await applicationDbContext.SaveChangesAsync();
+
+                    Console.WriteLine($"games:  {games.Count()}");
+                    foreach (var game in games)
+                    {
+                        var basePath = Path.Combine(_storageOptions.Value.GamesPath, game.Id.ToString());
+                        Directory.CreateDirectory(basePath);
+                        
+                        // Console.WriteLine($"basePath:  {basePath}");
+
+
+                        var fileName = $"game_{game.Id}_{game.CurrentVersion}.bin";
+                        var filePath = Path.Combine(basePath, fileName);
+
+                        await File.WriteAllBytesAsync(
+                            filePath,
+                            Encoding.UTF8.GetBytes($"FAKE_BINARY_{game.Name.ToUpperInvariant()}")
+                        );
+
+                        game.FilePath = filePath;
+                    }
+                    // Sauvegarder FilePath
+                    await applicationDbContext.SaveChangesAsync();
+                }
+                
+                
 
                 // Achat de 3 jeux par l'utilisateur test@test.com
                 var local_userEmail = "test@test.com";
