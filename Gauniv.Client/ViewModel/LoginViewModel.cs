@@ -29,7 +29,7 @@
 
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Gauniv.Client.Services;
+using Gauniv.Client.Repository;
 using Gauniv.Network;
 
 namespace Gauniv.Client.ViewModel
@@ -37,15 +37,16 @@ namespace Gauniv.Client.ViewModel
     [QueryProperty(nameof(SelectedGame), "SelectedGame")]
     public partial class LoginViewModel : ObservableObject
     {
+        private readonly IAuthRepository _authRepository;
+
         [ObservableProperty]
         private string email;
 
         [ObservableProperty]
         private string password;
-        
+
         [ObservableProperty]
         private GameDto selectedGame;
-        
 
         [ObservableProperty]
         private string errorMessage;
@@ -55,6 +56,11 @@ namespace Gauniv.Client.ViewModel
 
         [ObservableProperty]
         private bool isLoading;
+
+        public LoginViewModel(IAuthRepository authRepository)
+        {
+            _authRepository = authRepository;
+        }
 
         [RelayCommand]
         private async Task LoginAsync()
@@ -71,11 +77,17 @@ namespace Gauniv.Client.ViewModel
 
             try
             {
-                // Logique de connexion à implémenter
-                await Task.Delay(1000); // Simulation
+                bool isAuthenticated = await _authRepository.LoginAsync(Email, Password);
 
-                // Si succès, naviguer vers la page principale
-                // NavigationService.Instance.Navigate<Index>(new Dictionary<string, object>(), clear: true);
+                if (isAuthenticated)
+                {
+                    await Shell.Current.GoToAsync("//games");
+                }
+                else
+                {
+                    ErrorMessage = "Email ou mot de passe incorrect";
+                    HasError = true;
+                }
             }
             catch (Exception ex)
             {
@@ -91,7 +103,6 @@ namespace Gauniv.Client.ViewModel
         [RelayCommand]
         private void Register()
         {
-            // Navigation vers page d'inscription
             Console.WriteLine("Navigation vers inscription");
         }
     }

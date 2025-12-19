@@ -69,7 +69,7 @@ namespace Gauniv.Client.ViewModel
             };
 
             Debug.WriteLine($"Achat du jeu : {game.Name}");
-            await Shell.Current.GoToAsync("//login");
+            await Shell.Current.GoToAsync("//login",navigationParameter);
         }
 
     }

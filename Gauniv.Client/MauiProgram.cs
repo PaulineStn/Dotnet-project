@@ -61,7 +61,8 @@ namespace Gauniv.Client
             // Ajouter le ViewModel avec injection
             builder.Services.AddTransient<IndexViewModel>();
             builder.Services.AddTransient<Index>();
-
+            builder.Services.AddSingleton<IAuthRepository, ApiAuthRepository>();
+            builder.Services.AddTransient<LoginViewModel>();
             // Ajouter la page et l’injecter
             builder.Services.AddTransient<Pages.Index>();
             
