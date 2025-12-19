@@ -1,7 +1,9 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.Input;
+using Gauniv.Client.Pages;
 using Gauniv.Client.Repository;
+using Gauniv.Client.Services;
 using Gauniv.Network;
 
 namespace Gauniv.Client.ViewModel
@@ -57,6 +59,19 @@ namespace Gauniv.Client.ViewModel
             Console.WriteLine($"Game sélectionné : {game.Name}");
         }
         
+        
+        [RelayCommand]
+        private void AcheterGameCommand(GameDto game)
+        {
+            if (game == null)
+                return;
+
+            Console.WriteLine($"Game acheté : {game.Name}");
+    
+            // Navigation vers la page de login
+            NavigationService.Instance.Navigate<Login>(new Dictionary<string, object>());
+        }
+
         
     }
 }
