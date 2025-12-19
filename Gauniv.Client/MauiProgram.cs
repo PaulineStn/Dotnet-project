@@ -28,6 +28,7 @@
 #endregion
 using CommunityToolkit.Maui;
 using Gauniv.Client;
+using Gauniv.Client.Pages;
 using Gauniv.Client.Repository;
 using Gauniv.Client.Repository.Api;
 using Gauniv.Client.Repository.Static;
@@ -61,6 +62,10 @@ namespace Gauniv.Client
 
             // Ajouter la page et l’injecter
             builder.Services.AddTransient<Pages.Index>();
+            
+            
+            builder.Services.AddTransient<LoginViewModel>();
+            builder.Services.AddTransient<Login>();
 
 #if DEBUG
     		builder.Logging.AddDebug();

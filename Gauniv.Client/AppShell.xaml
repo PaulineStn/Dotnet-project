@@ -24,12 +24,16 @@
                 Route="profile">
         <ShellContent ContentTemplate="{DataTemplate local:Profile}" />
     </FlyoutItem>
+    
+    <FlyoutItem Title="Login"
+                Route="login">
+        <ShellContent ContentTemplate="{DataTemplate local:Login}" />
+    </FlyoutItem>
+    
     <FlyoutItem Title="My Games"
                 Route="mygames">
         <FlyoutItem.Style>
             <Style TargetType="FlyoutItem">
-                <Setter Property="IsVisible"
-                        Value="false" />
                 <Style.Triggers>
                     <DataTrigger TargetType="FlyoutItem"
                                  Binding="{Binding IsConnected}"
