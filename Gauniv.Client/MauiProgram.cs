@@ -63,8 +63,9 @@ namespace Gauniv.Client
             // Ajouter la page et l’injecter
             builder.Services.AddTransient<Pages.Index>();
             
-            builder.Services.AddTransient<Login>();
+            
             builder.Services.AddTransient<LoginViewModel>();
+            builder.Services.AddTransient<Login>();
 
 #if DEBUG
     		builder.Logging.AddDebug();
