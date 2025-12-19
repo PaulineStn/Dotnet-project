@@ -1,6 +1,8 @@
 <h1>Liste des jeux disponibles</h1>
 
-@model List<Gauniv.WebServer.Data.Game>
+@model X.PagedList.IPagedList<Gauniv.WebServer.Data.Game>
+@using X.PagedList.Mvc.Core
+@using X.PagedList
 
 @if (User.Identity?.IsAuthenticated == true && User.IsInRole("Admin"))
 {
@@ -116,3 +118,23 @@
 }
     </tbody>
 </table>
+
+<div class="mt-3">
+    @Html.PagedListPager(
+        Model,
+        page => Url.Action("Index", new {
+            page,
+            categoryId = ViewBag.CurrentCategoryId,
+            minPrice = ViewBag.CurrentMinPrice,
+            maxPrice = ViewBag.CurrentMaxPrice,
+            search = ViewBag.CurrentSearch
+        }),
+        new PagedListRenderOptions
+        {
+            UlElementClasses = new[] { "pagination" },
+            LiElementClasses = new[] { "page-item" },
+            PageClasses = new[] { "page-link" }
+        }
+    )
+</div>
+
