@@ -8,6 +8,57 @@
     
 }
 
+<form asp-action="Index" asp-controller="Games" method="get" class="row g-2 mt-3 mb-3">
+    <div class="col-md-4">
+        <label class="form-label">Recherche</label>
+        <input type="text"
+               name="search"
+               value="@Context.Request.Query["search"]"
+               class="form-control"
+               placeholder="Nom du jeu..." />
+    </div>
+
+    <div class="col-md-3">
+        <label class="form-label">Catégorie</label>
+        <select name="categoryId" class="form-select">
+            <option value="">Toutes</option>
+            @foreach (var c in (IEnumerable<Gauniv.WebServer.Data.Category>)ViewBag.Categories)
+            {
+                var selected = Context.Request.Query["categoryId"] == c.Id.ToString();
+                <option value="@c.Id" selected="@(selected ? "selected" : null)">@c.Name</option>
+            }
+        </select>
+    </div>
+
+    <div class="col-md-2">
+        <label class="form-label">Prix min</label>
+        <input type="number"
+               step="0.01"
+               name="minPrice"
+               value="@Context.Request.Query["minPrice"]"
+               class="form-control" />
+    </div>
+
+    <div class="col-md-2">
+        <label class="form-label">Prix max</label>
+        <input type="number"
+               step="0.01"
+               name="maxPrice"
+               value="@Context.Request.Query["maxPrice"]"
+               class="form-control" />
+    </div>
+
+    <div class="col-md-1 d-flex align-items-end">
+        <button type="submit" class="btn btn-primary w-100">OK</button>
+    </div>
+
+    <div class="col-12">
+        <a class="btn btn-outline-secondary"
+           asp-action="Index"
+           asp-controller="Games">Réinitialiser</a>
+    </div>
+</form>
+
 <table class="table">
     <thead>
         <tr>
@@ -23,6 +74,14 @@
                 }
 
             </th>
+            <th>
+                @if (User.Identity?.IsAuthenticated == true && User.IsInRole("User"))
+                {
+                    <a>Acheter</a>
+                }
+
+            </th>
+
         </tr>
     </thead>
     <tbody>
@@ -45,6 +104,12 @@
                     <a asp-action="Edit" asp-route-id="@item.Id">Modifier</a>
                     <span> | </span>
                     <a asp-action="Delete" asp-route-id="@item.Id">Supprimer</a>
+                }
+            </td>
+            <td>
+                @if (User.Identity?.IsAuthenticated == true && User.IsInRole("User"))
+                {
+                    <a asp-controller="Games" asp-action="MyGames" asp-route-gameId="@item.Id">Acheter</a>
                 }
             </td>
         </tr>

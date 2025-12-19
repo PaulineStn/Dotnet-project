@@ -71,13 +71,19 @@ namespace Gauniv.WebServer.Services
                     applicationDbContext.Database.Migrate();
                 }
                 
-                 // 1️⃣ Créer le rôle Admin s'il n'existe pas
+                 // Créer le rôle Admin s'il n'existe pas
                 if (!await roleManager.RoleExistsAsync("Admin"))
                 {
                     await roleManager.CreateAsync(new IdentityRole("Admin"));
                 }
 
-                // 2️⃣ Créer un utilisateur simple
+                // Créer le rôle User s'il n'existe pas
+                if (!await roleManager.RoleExistsAsync("User"))
+                {
+                    await roleManager.CreateAsync(new IdentityRole("User"));
+                }
+
+                // Créer un utilisateur simple
                 var userEmail = "test@test.com";
                 var user = await userManager.FindByEmailAsync(userEmail);
                 if (user == null)
@@ -91,7 +97,7 @@ namespace Gauniv.WebServer.Services
                     await userManager.CreateAsync(user, "Password123!"); // mot de passe simple pour test
                 }
                 
-                // 3️⃣ Créer un utilisateur Admin
+                // Créer un utilisateur Admin
                 var adminEmail = "admin@test.com";
                 var admin = await userManager.FindByEmailAsync(adminEmail);
                 if (admin == null)
@@ -105,28 +111,44 @@ namespace Gauniv.WebServer.Services
                     await userManager.CreateAsync(admin, "AdminPassword123!");
                 }
                 
-                // 4️⃣ Assigner le rôle Admin
+                // Assigner le rôle Admin
                 if (!await userManager.IsInRoleAsync(admin, "Admin"))
                 {
                     await userManager.AddToRoleAsync(admin, "Admin");
                 }
                 
-                
+                // Assigner le rôle User au compte test
+                if (!await userManager.IsInRoleAsync(user, "User"))
+                {
+                    await userManager.AddToRoleAsync(user, "User");
+                }
+
                 // Create Category
                 if (!applicationDbContext.Categories.Any())
                 {
                     applicationDbContext.Categories.AddRange(
                         new Category { Name = "Action" },
                         new Category { Name = "RPG" },
-                        new Category { Name = "Indie" }
+                        new Category { Name = "Indie" },
+                        new Category { Name = "Strategy" },
+                        new Category { Name = "Simulation" },
+                        new Category { Name = "Horror" },
+                        new Category { Name = "Multiplayer" },
+                        new Category { Name = "Puzzle" }
                     );
-                    applicationDbContext.SaveChanges(); // pour avoir les Id
+                    applicationDbContext.SaveChanges();
                 }
                 
                 if (!applicationDbContext.Games.Any())
                 {
                     var local_action = applicationDbContext.Categories.First(c => c.Name == "Action");
                     var local_rpg = applicationDbContext.Categories.First(c => c.Name == "RPG");
+                    var local_indie = applicationDbContext.Categories.First(c => c.Name == "Indie");
+                    var local_strategy = applicationDbContext.Categories.First(c => c.Name == "Strategy");
+                    var local_simulation = applicationDbContext.Categories.First(c => c.Name == "Simulation");
+                    var local_horror = applicationDbContext.Categories.First(c => c.Name == "Horror");
+                    var local_multiplayer = applicationDbContext.Categories.First(c => c.Name == "Multiplayer");
+                    var local_puzzle = applicationDbContext.Categories.First(c => c.Name == "Puzzle");
 
                     var local_game1 = new Game
                     {
@@ -140,44 +162,126 @@ namespace Gauniv.WebServer.Services
                     var local_game2 = new Game
                     {
                         Name = "Dungeon Quest",
-                        Description = "Classic RPG adventure",
+                        Description = "Classic fantasy RPG with turn-based combat",
                         Price = 29.99m,
                         CurrentVersion = "0.9.1",
                         Categories = new List<Category> { local_rpg }
                     };
-                    
-                    var games = new[] { local_game1, local_game2 };
 
-                    // 1️⃣ Ajouter + sauvegarder POUR AVOIR LES ID
-                    applicationDbContext.Games.AddRange(games);
-                    await applicationDbContext.SaveChangesAsync();
-                    
-                    Console.WriteLine($"games:  {games.Count()}");
-                    foreach (var game in games)
+                    var local_game3 = new Game
                     {
-                        var basePath = Path.Combine(_storageOptions.Value.GamesPath, game.Id.ToString());
-                        Directory.CreateDirectory(basePath);
-                        
-                        // Console.WriteLine($"basePath:  {basePath}");
+                        Name = "Pixel Farm",
+                        Description = "Relaxing indie farming simulation",
+                        Price = 14.99m,
+                        CurrentVersion = "1.2.3",
+                        Categories = new List<Category> { local_indie, local_simulation }
+                    };
+                    
+                    var local_game4 = new Game
+                    {
+                        Name = "Empire Architect",
+                        Description = "Build and manage your own interstellar empire",
+                        Price = 39.99m,
+                        CurrentVersion = "2.0.0",
+                        Categories = new List<Category> { local_strategy }
+                    };
 
+                    var local_game5 = new Game
+                    {
+                        Name = "Nightfall Asylum",
+                        Description = "Psychological horror experience in an abandoned asylum",
+                        Price = 24.99m,
+                        CurrentVersion = "1.1.0",
+                        Categories = new List<Category> { local_horror }
+                    };
 
-                        var fileName = $"game_{game.Id}_{game.CurrentVersion}.bin";
-                        var filePath = Path.Combine(basePath, fileName);
+                    var local_game6 = new Game
+                    {
+                        Name = "Battle Arena Online",
+                        Description = "Competitive multiplayer arena battles",
+                        Price = 0.00m,
+                        CurrentVersion = "3.4.5",
+                        Categories = new List<Category> { local_action, local_multiplayer }
+                    };
 
-                        await File.WriteAllBytesAsync(
-                            filePath,
-                            Encoding.UTF8.GetBytes($"FAKE_BINARY_{game.Name.ToUpperInvariant()}")
-                        );
+                    var local_game7 = new Game
+                    {
+                        Name = "Mind Blocks",
+                        Description = "Challenging logic puzzles to train your brain",
+                        Price = 9.99m,
+                        CurrentVersion = "1.0.2",
+                        Categories = new List<Category> { local_puzzle, local_indie }
+                    };
+                    
+                    var games = new[] { local_game1,
+                        local_game2,
+                        local_game3,
+                        local_game4,
+                        local_game5,
+                        local_game6,
+                        local_game7 };
 
-                        game.FilePath = filePath;
-                    }
-                    // 3️⃣ Sauvegarder FilePath
-                    await applicationDbContext.SaveChangesAsync();
+                    applicationDbContext.Games.AddRange(games);
                 }
                 
+                Console.WriteLine($"games:  {games.Count()}");
+                foreach (var game in games)
+                {
+                    var basePath = Path.Combine(_storageOptions.Value.GamesPath, game.Id.ToString());
+                    Directory.CreateDirectory(basePath);
+                        
+                    // Console.WriteLine($"basePath:  {basePath}");
 
-                // 5️⃣ Sauvegarder les changements (au cas où)
+
+                    var fileName = $"game_{game.Id}_{game.CurrentVersion}.bin";
+                    var filePath = Path.Combine(basePath, fileName);
+
+                    await File.WriteAllBytesAsync(
+                        filePath,
+                        Encoding.UTF8.GetBytes($"FAKE_BINARY_{game.Name.ToUpperInvariant()}")
+                    );
+
+                    game.FilePath = filePath;
+                }
+                // Sauvegarder FilePath
                 await applicationDbContext.SaveChangesAsync();
+
+                // Achat de 3 jeux par l'utilisateur test@test.com
+                var local_userEmail = "test@test.com";
+                var local_user = await userManager.FindByEmailAsync(local_userEmail);
+
+                if (local_user != null)
+                {
+                    // Choix explicite des jeux achetés
+                    var local_gameNames = new[]
+                    {
+                        "Space Blaster",
+                        "Dungeon Quest",
+                        "Pixel Farm"
+                    };
+
+                    var local_gamesToPurchase = applicationDbContext.Games
+                        .Where(g => local_gameNames.Contains(g.Name))
+                        .ToList();
+
+                    foreach (var local_game in local_gamesToPurchase)
+                    {
+                        var local_alreadyPurchased = applicationDbContext.UserGamePurchases
+                            .Any(ug => ug.UserId == local_user.Id && ug.GameId == local_game.Id);
+
+                        if (!local_alreadyPurchased)
+                        {
+                            applicationDbContext.UserGamePurchases.Add(new UserGamePurchase
+                            {
+                                UserId = local_user.Id,
+                                GameId = local_game.Id,
+                                PurchasedAt = DateTime.UtcNow
+                            });
+                        }
+                    }
+
+                    await applicationDbContext.SaveChangesAsync();
+                }
                 
             }
         }

@@ -10,5 +10,9 @@
 <p>
     <a class="btn btn-primary" asp-controller="Games" asp-action="Index">Liste des jeux</a>
     <a class="btn btn-primary" asp-controller="Category" asp-action="Index">Liste des catégories</a>
+    @if (User.Identity?.IsAuthenticated == true && User.IsInRole("User"))
+    {
+        <a class="btn btn-primary" asp-controller="MyGames" asp-action="Index">Mes jeux</a>
+    }
 </p>
 
