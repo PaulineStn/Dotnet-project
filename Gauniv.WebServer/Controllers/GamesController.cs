@@ -2,6 +2,7 @@ using Gauniv.WebServer.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace Gauniv.WebServer.Controllers;
 
@@ -159,4 +160,21 @@ public class GamesController : Controller
             .OrderBy(c => c.Name)
             .ToListAsync();
     }
+
+    [Authorize(Roles = "User")]
+    public async Task<IActionResult> MyGames()
+    {
+        var local_userId  = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        var local_games = await _db.UserGamePurchases
+            .Where(p => p.UserId == local_userId)
+            .Include(p => p.Game)
+                .ThenInclude(g => g.Categories)
+            .Select(p => p.Game)
+            .AsNoTracking()
+            .ToListAsync();
+
+        return View("Index", local_games);
+    }
+
 }
