@@ -109,7 +109,7 @@
             <td>
                 @if (User.Identity?.IsAuthenticated == true && User.IsInRole("User"))
                 {
-                    <a asp-controller="Games" asp-action="MyGames" asp-route-gameId="@item.Id">Acheter</a>
+                    <a asp-controller="Games" asp-action="Checkout" asp-route-gameId="@item.Id">Acheter</a>
                 }
             </td>
         </tr>

@@ -1,0 +1,59 @@
+@model List<Gauniv.WebServer.Data.Game>
+
+@{
+    ViewData["Title"] = "Mes jeux";
+}
+
+<h1>Mes jeux</h1>
+
+@if (Model == null || !Model.Any())
+{
+    <div class="alert alert-info">
+        Vous n'avez encore acheté aucun jeu.
+    </div>
+
+    <a class="btn btn-primary" asp-controller="Games" asp-action="Index">Voir la boutique</a>
+}
+else
+{
+    <p class="mb-3">
+        <a class="btn btn-primary" asp-controller="Games" asp-action="Index">Voir la boutique</a>
+    </p>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Nom</th>
+                <th>Prix</th>
+                <th>Description</th>
+                <th>Catégories</th>
+            </tr>
+        </thead>
+        <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.Id</td>
+                <td>@item.Name</td>
+                <td>@item.Price</td>
+                <td>@item.Description</td>
+                <td>
+                    @if (item.Categories != null && item.Categories.Any())
+                    {
+                        foreach (var category in item.Categories)
+                        {
+                            @category.Name<br />
+                        }
+                    }
+                    else
+                    {
+                        <span class="text-muted">Aucune</span>
+                    }
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+}
+

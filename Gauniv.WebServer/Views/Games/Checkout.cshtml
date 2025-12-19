@@ -1,0 +1,60 @@
+@model Gauniv.WebServer.Data.Game
+
+@{
+    ViewData["Title"] = "Achat";
+    bool alreadyOwned = ViewBag.AlreadyOwned == true;
+}
+
+<h1>Achat</h1>
+
+<div class="card p-3 mb-3">
+    <h4 class="mb-1">@Model.Name</h4>
+    <div class="text-muted mb-2">Prix : @Model.Price €</div>
+
+    <div>
+        <strong>Catégories :</strong><br />
+        @if (Model.Categories != null && Model.Categories.Any())
+        {
+            foreach (var c in Model.Categories)
+            {
+                @c.Name <br />
+            }
+        }
+        else
+        {
+            <span class="text-muted">Aucune</span>
+        }
+    </div>
+</div>
+
+@if (alreadyOwned)
+{
+    <div class="alert alert-info">
+        Vous possédez déjà ce jeu.
+    </div>
+
+    <a class="btn btn-primary" asp-controller="Games" asp-action="MyGames">Aller à mes jeux</a>
+    <a class="btn btn-outline-secondary" asp-controller="Games" asp-action="Index">Retour boutique</a>
+}
+else
+{
+    <form asp-action="CheckoutConfirm" asp-controller="Games" method="post" class="card p-3">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="gameId" value="@Model.Id" />
+
+        <div class="mb-3">
+            <label class="form-label">Carte bleue</label>
+            <input type="text"
+                   name="cardNumber"
+                   class="form-control"
+                   value="4242 4242 4242 4242"
+                   />
+            <div class="form-text">Paiement simulé.</div>
+        </div>
+
+        <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-success">Valider l’achat</button>
+            <a class="btn btn-outline-secondary" asp-controller="Games" asp-action="Index">Annuler</a>
+        </div>
+    </form>
+}

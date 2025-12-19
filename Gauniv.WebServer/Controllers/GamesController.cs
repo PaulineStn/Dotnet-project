@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
+using Microsoft.AspNetCore.Identity;
 
 namespace Gauniv.WebServer.Controllers;
 
@@ -174,7 +175,59 @@ public class GamesController : Controller
             .AsNoTracking()
             .ToListAsync();
 
-        return View("Index", local_games);
+        return View(local_games);
     }
+
+    [Authorize(Roles = "User")]
+    [HttpGet]
+    public async Task<IActionResult> Checkout(int gameId)
+    {
+        var game = await _db.Games
+            .Include(g => g.Categories)
+            .AsNoTracking()
+            .FirstOrDefaultAsync(g => g.Id == gameId);
+
+        if (game == null) return NotFound();
+
+        // Optionnel : empêcher l'achat si déjà possédé
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var alreadyOwned = await _db.UserGamePurchases
+            .AnyAsync(p => p.UserId == userId && p.GameId == gameId);
+
+        ViewBag.AlreadyOwned = alreadyOwned;
+
+        return View(game); // -> Views/Games/Checkout.cshtml
+    }
+
+    [Authorize(Roles = "User")]
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> CheckoutConfirm(int gameId, string cardNumber)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        var gameExists = await _db.Games.AnyAsync(g => g.Id == gameId);
+        if (!gameExists) return NotFound();
+
+        // Empêche les doublons
+        var alreadyOwned = await _db.UserGamePurchases
+            .AnyAsync(p => p.UserId == userId && p.GameId == gameId);
+
+        if (!alreadyOwned)
+        {
+            _db.UserGamePurchases.Add(new UserGamePurchase
+            {
+                UserId = userId,
+                GameId = gameId,
+                PurchasedAt = DateTime.UtcNow // si ta colonne existe, sinon enlève
+            });
+
+            await _db.SaveChangesAsync();
+        }
+
+        // Redirection vers la liste "Mes jeux"
+        return RedirectToAction(nameof(MyGames));
+    }
+
 
 }
