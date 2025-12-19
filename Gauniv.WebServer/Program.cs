@@ -26,6 +26,8 @@
 // 
 // Please respect the team's standards for any future contribution
 #endregion
+
+using Gauniv.WebServer;
 using Gauniv.WebServer.Data;
 using Gauniv.WebServer.Dtos;
 using Gauniv.WebServer.Security;
@@ -93,6 +95,10 @@ builder.Services.AddSignalR();
 builder.Services.AddHostedService<OnlineService>();
 builder.Services.AddHostedService<SetupService>();
 builder.Services.AddScoped<MappingProfile, MappingProfile>();
+
+// For Storage
+builder.Services.Configure<StorageOptions>(
+    builder.Configuration.GetSection("Storage"));
 
 var app = builder.Build();
 
@@ -166,5 +172,6 @@ app.UseSwaggerUI(options =>
     options.SwaggerEndpoint("/openapi/v1.json", "v1");
 });
 app.MapHub<OnlineHub>("/online");
+
 
 app.Run();

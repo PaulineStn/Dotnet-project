@@ -32,6 +32,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pages;
 using System.Text;
 
@@ -42,10 +43,12 @@ namespace Gauniv.WebServer.Services
         private ApplicationDbContext? applicationDbContext;
         private readonly IServiceProvider serviceProvider;
         private Task? task;
+        private readonly IOptions<StorageOptions> _storageOptions;
 
-        public SetupService(IServiceProvider serviceProvider)
+        public SetupService(IServiceProvider serviceProvider, IOptions<StorageOptions> storageOptions)
         {
             this.serviceProvider = serviceProvider;
+            _storageOptions = storageOptions;
         }
 
         public async Task StartAsync(CancellationToken cancellationToken)
@@ -131,7 +134,6 @@ namespace Gauniv.WebServer.Services
                         Description = "Fast action shooter",
                         Price = 19.99m,
                         CurrentVersion = "1.0.0",
-                        Payload = Encoding.UTF8.GetBytes("FAKE_BINARY_GAME_1"),
                         Categories = new List<Category> { local_action }
                     };
 
@@ -141,12 +143,38 @@ namespace Gauniv.WebServer.Services
                         Description = "Classic RPG adventure",
                         Price = 29.99m,
                         CurrentVersion = "0.9.1",
-                        Payload = Encoding.UTF8.GetBytes("FAKE_BINARY_GAME_2"),
                         Categories = new List<Category> { local_rpg }
                     };
+                    
+                    var games = new[] { local_game1, local_game2 };
 
-                    applicationDbContext.Games.AddRange(local_game1, local_game2);
+                    // 1️⃣ Ajouter + sauvegarder POUR AVOIR LES ID
+                    applicationDbContext.Games.AddRange(games);
+                    await applicationDbContext.SaveChangesAsync();
+                    
+                    Console.WriteLine($"games:  {games.Count()}");
+                    foreach (var game in games)
+                    {
+                        var basePath = Path.Combine(_storageOptions.Value.GamesPath, game.Id.ToString());
+                        Directory.CreateDirectory(basePath);
+                        
+                        // Console.WriteLine($"basePath:  {basePath}");
+
+
+                        var fileName = $"game_{game.Id}_{game.CurrentVersion}.bin";
+                        var filePath = Path.Combine(basePath, fileName);
+
+                        await File.WriteAllBytesAsync(
+                            filePath,
+                            Encoding.UTF8.GetBytes($"FAKE_BINARY_{game.Name.ToUpperInvariant()}")
+                        );
+
+                        game.FilePath = filePath;
+                    }
+                    // 3️⃣ Sauvegarder FilePath
+                    await applicationDbContext.SaveChangesAsync();
                 }
+                
 
                 // 5️⃣ Sauvegarder les changements (au cas où)
                 await applicationDbContext.SaveChangesAsync();
