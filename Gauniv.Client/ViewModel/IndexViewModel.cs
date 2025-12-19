@@ -1,42 +1,62 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using System.Collections.ObjectModel;
+using CommunityToolkit.Mvvm.Input;
+using Gauniv.Client.Repository;
 using Gauniv.Network;
 
 namespace Gauniv.Client.ViewModel
 {
     public partial class IndexViewModel: ObservableObject
     {
-        private readonly ApiClient _api;
 
         [ObservableProperty]
         private ObservableCollection<GameDto> games = new();
+        private readonly IGameRepository _repository;
 
-        public IndexViewModel(ApiClient api)
-        {
-            _api = api;
-            LoadGames();
-        }
         
-        private void LoadGames()
+        [ObservableProperty]
+        private bool isLoading;
+
+        public IndexViewModel(IGameRepository repository)
         {
-                
-            var req = _api.GetAllAsync(null, null, null, null, null, null);
-            
-            Console.WriteLine($"games: {req.Result}");
-        
-            Games = new ObservableCollection<GameDto>(req.Result);
-            // Games = new ObservableCollection<Game>
-            // {
-            //     new Game { Title = "Jeu 1", ImagePath = "jeu1.jpg" ,Description="lorem ipsum"},
-            //     new Game { Title = "Jeu 2", ImagePath = "jeu2.jpg",Description="lorem ipsum" },
-            // };
+            _repository = repository;
         }
 
-        // [RelayCommand]
-        // private async Task SelectGame(Game game)
-        // {
-        //     // Navigation vers les détails du jeu
-        //     await Shell.Current.GoToAsync($"gamedetails?id={game.Id}");
-        // }
+        [RelayCommand]
+        private async Task LoadGamesAsync()
+        {
+            if (IsLoading)
+                return;
+
+            IsLoading = true;
+
+            try
+            {
+                var local_games = await _repository.GetAllAsync();
+
+                Games.Clear();
+
+                foreach (var local_game in local_games)
+                {
+                    Games.Add(local_game);
+                }
+            }
+            finally
+            {
+                IsLoading = false;
+            }
+        }
+        
+        [RelayCommand]
+        private void SelectGameCommand(GameDto game)
+        {
+            if (game == null)
+                return;
+
+            // Navigation vers page détail plus tard
+            Console.WriteLine($"Game sélectionné : {game.Name}");
+        }
+        
+        
     }
 }
