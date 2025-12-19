@@ -28,12 +28,14 @@
 #endregion
 using CommunityToolkit.Maui;
 using Gauniv.Client;
+using Gauniv.Client.Pages;
 using Gauniv.Client.Repository;
 using Gauniv.Client.Repository.Api;
 using Gauniv.Client.Repository.Static;
 using Gauniv.Client.ViewModel;
 using Gauniv.Network;
 using Microsoft.Extensions.Logging;
+using Index = Gauniv.Client.Pages.Index;
 
 namespace Gauniv.Client
 {
@@ -58,9 +60,14 @@ namespace Gauniv.Client
 
             // Ajouter le ViewModel avec injection
             builder.Services.AddTransient<IndexViewModel>();
-
-            // Ajouter la page et l’injecter
+            builder.Services.AddTransient<Index>();
+            builder.Services.AddSingleton<IAuthRepository, ApiAuthRepository>();
+            builder.Services.AddTransient<LoginViewModel>();
             builder.Services.AddTransient<Pages.Index>();
+            builder.Services.AddTransient<BuyViewModel>();
+            builder.Services.AddSingleton<IAuthService, AuthService>();
+            builder.Services.AddTransient<LoginViewModel>();
+            builder.Services.AddTransient<Login>();
 
 #if DEBUG
     		builder.Logging.AddDebug();

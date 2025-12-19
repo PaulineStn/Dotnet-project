@@ -90,6 +90,12 @@
 	  <MauiXaml Update="Pages\Profile.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
+        <MauiXaml Update="Pages\Login.xaml">
+            <Generator>MSBuild:Compile</Generator>
+        </MauiXaml>
+        <MauiXaml Update="Pages\Buy.xaml">
+            <Generator>MSBuild:Compile</Generator>
+        </MauiXaml>
 	</ItemGroup>
 
 </Project>

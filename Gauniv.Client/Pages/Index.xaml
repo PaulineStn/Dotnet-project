@@ -77,7 +77,7 @@ Please respect the team's standards for any future contribution
                         SelectionMode="None">
             
             <CollectionView.ItemsLayout>
-                <LinearItemsLayout Orientation="Vertical" ItemSpacing="15"/>
+                <LinearItemsLayout Orientation="Horizontal" ItemSpacing="15"/>
             </CollectionView.ItemsLayout>
             
             <CollectionView.ItemTemplate>
@@ -91,57 +91,56 @@ Please respect the team's standards for any future contribution
                                 Command="{Binding Source={RelativeSource AncestorType={x:Type vm:IndexViewModel}}, Path=SelectGameCommand}"
                                 CommandParameter="{Binding .}"/>
                         </Frame.GestureRecognizers>
-                        
-                        <Grid ColumnDefinitions="120,*" RowDefinitions="*,Auto" HeightRequest="140">
-                            <!-- Image avec effet overlay -->
-                            <Frame Grid.RowSpan="2" 
-                                   Padding="0" 
-                                   CornerRadius="20,0,0,20"
-                                   HasShadow="False"
-                                   IsClippedToBounds="True">
-                                <Image Source="{Binding ImagePath}"
-                                       Aspect="AspectFill"/>
-                            </Frame>
+                        <Grid ColumnDefinitions="100,*"
+                              RowDefinitions="Auto,Auto"
+                              Padding="10">
 
-                            <!-- Contenu -->
-                            <VerticalStackLayout Grid.Column="1" 
-                                               Padding="15,15,15,10"
-                                               Spacing="1">
+                            <!-- Image -->
+                            <Image Grid.RowSpan="2"
+                                   Source="{Binding ImagePath}"
+                                   Aspect="AspectFill"
+                                   HeightRequest="80"
+                                   WidthRequest="100"/>
+
+                            <!-- Infos -->
+                            <VerticalStackLayout Grid.Column="1"
+                                                 Spacing="2">
+
                                 <Label Text="{Binding Name}"
-                                       FontSize="20"
+                                       FontSize="16"
                                        FontAttributes="Bold"
-                                       TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark=White}"
                                        LineBreakMode="TailTruncation"/>
-                                
+
                                 <Label Text="{Binding Description}"
-                                       FontSize="14"
-                                       TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray400}}"
-                                       LineBreakMode="WordWrap"
-                                       MaxLines="2"/>
+                                       FontSize="13"
+                                       MaxLines="1"
+                                       LineBreakMode="TailTruncation"
+                                       TextColor="{StaticResource Gray600}"/>
+
+                                <!-- Prix -->
+                                <Label Text="{Binding Price, StringFormat='{}{0} €'}"
+                                       FontSize="15"
+                                       FontAttributes="Bold"
+                                       TextColor="{StaticResource Primary}"/>
                             </VerticalStackLayout>
 
-                            <!-- Bouton d'action flottant -->
-                                <Button Text="▶ Play"
-                                        FontSize="14"
-                                        FontAttributes="Bold"
-                                        BackgroundColor="{StaticResource Primary}"
-                                        TextColor="White"
-                                        CornerRadius="15"
-                                        HeightRequest="40"
-                                        HorizontalOptions="End"
-                                        Command="{Binding Source={RelativeSource AncestorType={x:Type vm:IndexViewModel}}, Path=SelectGameCommand}"
-                                        CommandParameter="{Binding .}"/>
-                            <Button Text="▶ V"
-                                    FontSize="14"
+                            <!-- Bouton Acheter à droite -->
+                            <Button Grid.Column="1"
+                                    Grid.Row="1"
+                                    Text="Buy"
+                                    FontSize="13"
                                     FontAttributes="Bold"
                                     BackgroundColor="{StaticResource Primary}"
                                     TextColor="White"
-                                    CornerRadius="15"
-                                    HeightRequest="40"
+                                    CornerRadius="14"
+                                    HeightRequest="34"
                                     HorizontalOptions="End"
-                                    Command="{Binding Source={RelativeSource AncestorType={x:Type vm:IndexViewModel}}, Path=SelectGameCommand}"
+                                    Command="{Binding Source={RelativeSource AncestorType={x:Type vm:IndexViewModel}},
+                                    Path=BuyGameCommand}"
+                                    
                                     CommandParameter="{Binding .}"/>
                         </Grid>
+
                     </Frame>
                 </DataTemplate>
             </CollectionView.ItemTemplate>
