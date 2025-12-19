@@ -5,6 +5,7 @@ using Gauniv.Client.Pages;
 using Gauniv.Client.Repository;
 using Gauniv.Network;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 
 namespace Gauniv.Client.ViewModel
 {
@@ -57,17 +58,19 @@ namespace Gauniv.Client.ViewModel
         }
 
         [RelayCommand]
-        private async Task AcheterGameCommandAsync(GameDto game)
+        private async Task AcheterGame(GameDto game)
         {
             if (game == null)
                 return;
 
-            var local_loginPage = _serviceProvider.GetRequiredService<Login>();
+            var navigationParameter = new Dictionary<string, object>
+            {
+                { "SelectedGame", game }
+            };
 
-            if (local_loginPage.BindingContext is LoginViewModel local_vm)
-                local_vm.SelectedGame = game;
-
-            await Application.Current.MainPage.Navigation.PushAsync(local_loginPage);
+            Debug.WriteLine($"Achat du jeu : {game.Name}");
+            await Shell.Current.GoToAsync("//login");
         }
+
     }
 }

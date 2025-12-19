@@ -34,6 +34,7 @@ using Gauniv.Network;
 
 namespace Gauniv.Client.ViewModel
 {
+    [QueryProperty(nameof(SelectedGame), "SelectedGame")]
     public partial class LoginViewModel : ObservableObject
     {
         [ObservableProperty]
