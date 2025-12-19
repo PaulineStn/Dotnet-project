@@ -81,7 +81,7 @@ namespace Gauniv.Client.ViewModel
 
                 if (isAuthenticated)
                 {
-                    await Shell.Current.GoToAsync("//games");
+                    await Shell.Current.GoToAsync("//buy");
                 }
                 else
                 {

@@ -15,15 +15,15 @@ namespace Gauniv.Client.ViewModel
         private ObservableCollection<GameDto> games = new();
 
         private readonly IGameRepository _repository;
-        private readonly IServiceProvider _serviceProvider;
-
+        private readonly IAuthService _authService;
         [ObservableProperty]
         private bool isLoading;
 
-        public IndexViewModel(IGameRepository repository, IServiceProvider serviceProvider)
+        public IndexViewModel(IGameRepository repository, IAuthService authService)
         {
             _repository = repository;
-            _serviceProvider = serviceProvider;
+            _authService = authService;
+
         }
 
         [RelayCommand]
@@ -58,18 +58,29 @@ namespace Gauniv.Client.ViewModel
         }
 
         [RelayCommand]
-        private async Task AcheterGame(GameDto game)
+        private async Task BuyGame(GameDto game)
         {
             if (game == null)
                 return;
 
-            var navigationParameter = new Dictionary<string, object>
+            // Vérifier si l'utilisateur est connecté
+            if (!_authService.IsAuthenticated)
             {
-                { "SelectedGame", game }
-            };
-
-            Debug.WriteLine($"Achat du jeu : {game.Name}");
-            await Shell.Current.GoToAsync("//login",navigationParameter);
+                var navigationParameter = new Dictionary<string, object>
+                {
+                    { "SelectedGame", game }
+                };
+                await Shell.Current.GoToAsync("//login", navigationParameter);
+            }
+            else
+            {
+                // Rediriger directement vers Buy
+                var navigationParameter = new Dictionary<string, object>
+                {
+                    { "SelectedGame", game }
+                };
+                await Shell.Current.GoToAsync("//buy", navigationParameter);
+            }
         }
 
     }
