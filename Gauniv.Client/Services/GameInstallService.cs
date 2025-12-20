@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Threading;
 using Gauniv.Client.ViewModel;
@@ -60,8 +61,9 @@ public class GameInstallService : IGameInstallService
     /// </summary>
     public async Task<string> DownloadAsync(int gameId, IProgress<double>? progress = null)
     {
+        var filename = GetFileName(gameId);
         if (IsInstalled(gameId))
-            return Path.Combine(_installFolder, $"{gameId}.exe");
+            return Path.Combine(_installFolder, filename);
 
         _downloadCts = new CancellationTokenSource();
         
@@ -88,7 +90,7 @@ public class GameInstallService : IGameInstallService
         response.EnsureSuccessStatusCode();
 
         var total = response.Content.Headers.ContentLength ?? -1L;
-        var filePath = Path.Combine(_installFolder, $"{gameId}.exe");
+        var filePath = Path.Combine(_installFolder, filename);
 
         await using var stream = await response.Content.ReadAsStreamAsync(_downloadCts.Token);
         await using var fs = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.None, 81920, true);
@@ -126,12 +128,19 @@ public class GameInstallService : IGameInstallService
         SaveInstalledGames();
     }
 
+    private string GetFileName(int gameId)
+    {
+        return $"{gameId}.exe";
+        // return $"{gameId}.dmg";
+    }
+
     public Task PlayAsync(int gameId, Action? onExited = null)
     {
         if (!IsInstalled(gameId))
             throw new InvalidOperationException("Jeu non installé");
 
-        var exePath = Path.Combine(_installFolder, $"{gameId}.exe");
+        var filename = GetFileName(gameId);
+        var exePath = Path.Combine(_installFolder, filename);
         if (!File.Exists(exePath))
             throw new FileNotFoundException("Fichier du jeu introuvable", exePath);
 
@@ -145,6 +154,13 @@ public class GameInstallService : IGameInstallService
                 FileName = exePath,
                 UseShellExecute = true
             };
+            // {
+            //     FileName = "open";
+            //     Arguments = $"-a \"{exePath}\""; // -a pour application
+            //     UseShellExecute = false;
+            // };
+            Console.WriteLine($"exePath:  {exePath}");
+           
 
             _runningGame = Process.Start(startInfo);
 
