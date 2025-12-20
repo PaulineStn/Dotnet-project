@@ -25,6 +25,7 @@ public class GamesController : Controller
         decimal? minPrice,
         decimal? maxPrice,
         string? search,
+        string? sort,
         int page = 1,
         int pageSize = 10)
     {
@@ -45,21 +46,26 @@ public class GamesController : Controller
         if (!string.IsNullOrWhiteSpace(search))
             query = query.Where(g => g.Name.ToLower().Contains(search.ToLower()));
 
-        query = query.OrderBy(g => g.Id);
+        query = sort switch
+        {
+            "price_asc"  => query.OrderBy(g => g.Price).ThenBy(g => g.Id),
+            "price_desc" => query.OrderByDescending(g => g.Price).ThenBy(g => g.Id),
+            _            => query.OrderBy(g => g.Id)
+        };
 
-        // catégories pour la dropdown
+
         ViewBag.Categories = await _db.Categories
             .AsNoTracking()
             .OrderBy(c => c.Name)
             .ToListAsync();
 
-        // pour conserver les filtres dans le pager
         ViewBag.CurrentCategoryId = categoryId;
         ViewBag.CurrentMinPrice = minPrice;
         ViewBag.CurrentMaxPrice = maxPrice;
+        ViewBag.CurrentSort = sort;
         ViewBag.CurrentSearch = search;
 
-        // pagination (sans ToPagedList)
+        // pagination
         var totalCount = await query.CountAsync();
         var items = await query.Skip((page - 1) * pageSize)
                             .Take(pageSize)
@@ -111,8 +117,17 @@ public class GamesController : Controller
 
         Directory.CreateDirectory(basePath);
 
+        var safeGameName = game.Name.Trim();
+
+        foreach (var c in Path.GetInvalidFileNameChars())
+        {
+            safeGameName = safeGameName.Replace(c, '_');
+        }
+
+        var safeFileName = $"{safeGameName}_{game.CurrentVersion}.exe";
+
         // Nom de fichier maîtrisé
-        var safeFileName = $"game_{game.Id}_{game.CurrentVersion}.bin";
+        //var safeFileName = $"game_{game.Id}_{game.CurrentVersion}.bin";
         var filePath = Path.Combine(basePath, safeFileName);
 
         await using (var fileStream = new FileStream(
@@ -150,40 +165,87 @@ public class GamesController : Controller
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Edit(int id, Game game, int[]? categoryIds, IFormFile? payloadFile)
     {
-    if (id != game.Id) return BadRequest();
-    //if (!ModelState.IsValid) return View(game);
+        if (id != game.Id) return BadRequest();
 
-    var local_game = await _db.Games
-        .Include(g => g.Categories)
-        .FirstOrDefaultAsync(g => g.Id == id);
+        var local_game = await _db.Games
+            .Include(g => g.Categories)
+            .FirstOrDefaultAsync(g => g.Id == id);
 
-    if (local_game == null) return NotFound();
+        if (local_game == null) return NotFound();
 
-    var local_categories = categoryIds?.Length > 0
-        ? await _db.Categories.Where(c => categoryIds.Contains(c.Id)).ToListAsync()
-        : new List<Category>();
+        var local_categories = categoryIds?.Length > 0
+            ? await _db.Categories.Where(c => categoryIds.Contains(c.Id)).ToListAsync()
+            : new List<Category>();
 
-    if (local_categories.Count == 0)
-        ModelState.AddModelError("categoryIds", "Choisissez au moins une catégorie.");
+        if (local_categories.Count == 0)
+            ModelState.AddModelError("categoryIds", "Choisissez au moins une catégorie.");
 
-    if (!ModelState.IsValid)
-    {
-        game.Categories = local_categories;
-        await PopulateCategoriesAsync();
-        return View(game);
+        // Payload: optionnel -> on valide seulement si un fichier est fourni mais invalide
+        if (payloadFile != null && payloadFile.Length == 0)
+            ModelState.AddModelError("payloadFile", "Le fichier payload est vide.");
+
+        if (!ModelState.IsValid)
+        {
+            // renvoie un modèle avec les catégories cochées
+            game.Categories = local_categories;
+            await PopulateCategoriesAsync();
+            return View(game);
+        }
+
+        // Champs simples
+        local_game.Name = game.Name;
+        local_game.Price = game.Price;
+        local_game.CurrentVersion = game.CurrentVersion;
+        local_game.Description = game.Description;
+
+
+        // Catégories
+        local_game.Categories.Clear();
+        foreach (var c in local_categories)
+            local_game.Categories.Add(c);
+
+        // ---- NOUVEAU: si l'admin a uploadé un payload, on le remplace
+        if (payloadFile != null && payloadFile.Length > 0)
+        {
+            var basePath = Path.Combine(
+                _storageOptions.Value.GamesPath,
+                local_game.Id.ToString());
+
+            Directory.CreateDirectory(basePath);
+
+            var safeGameName = local_game.Name.Trim();
+
+            foreach (var c in Path.GetInvalidFileNameChars())
+            {
+                safeGameName = safeGameName.Replace(c, '_');
+            }
+
+            var safeFileName = $"{safeGameName}_{local_game.CurrentVersion}.exe";
+
+            //var safeFileName = $"game_{local_game.Id}_{local_game.CurrentVersion}.bin";
+
+            var filePath = Path.Combine(basePath, safeFileName);
+
+            await using (var fileStream = new FileStream(
+                            filePath,
+                            FileMode.Create,
+                            FileAccess.Write,
+                            FileShare.None,
+                            bufferSize: 81920,
+                            useAsync: true))
+            {
+                await payloadFile.CopyToAsync(fileStream);
+            }
+
+            local_game.FilePath = filePath;
+
+            // if (!string.IsNullOrWhiteSpace(oldPath) && System.IO.File.Exists(oldPath)) System.IO.File.Delete(oldPath);
+        }
+
+        await _db.SaveChangesAsync();
+        return RedirectToAction(nameof(Index));
     }
 
-    local_game.Name = game.Name;
-    local_game.Price = game.Price;
-    local_game.CurrentVersion = game.CurrentVersion;
-
-    local_game.Categories.Clear();
-    foreach (var c in local_categories)
-        local_game.Categories.Add(c);
-
-    await _db.SaveChangesAsync();
-    return RedirectToAction(nameof(Index));
-    }
 
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Delete(int id)
@@ -241,7 +303,7 @@ public class GamesController : Controller
 
         if (game == null) return NotFound();
 
-        // Optionnel : empêcher l'achat si déjà possédé
+        // pourr empecher l'achat si déjà possédé
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         var alreadyOwned = await _db.UserGamePurchases
             .AnyAsync(p => p.UserId == userId && p.GameId == gameId);
@@ -261,7 +323,6 @@ public class GamesController : Controller
         var gameExists = await _db.Games.AnyAsync(g => g.Id == gameId);
         if (!gameExists) return NotFound();
 
-        // Empêche les doublons
         var alreadyOwned = await _db.UserGamePurchases
             .AnyAsync(p => p.UserId == userId && p.GameId == gameId);
 
@@ -277,17 +338,17 @@ public class GamesController : Controller
             await _db.SaveChangesAsync();
         }
 
-        // Redirection vers la liste "Mes jeux"
+        // Redirection vers Mes jeux
         return RedirectToAction(nameof(MyGames));
     }
 
     [HttpGet]
     public async Task<IActionResult> GamesStats()
     {
-        // 1) Total jeux
+        // Total jeux
         var totalGames = await _db.Games.AsNoTracking().CountAsync();
 
-        // 2) Jeux par catégorie (y compris catégories à 0 jeu)
+        // Jeux par catégorie (y compris catégories à 0 jeu)
         var gamesByCategory = await _db.Categories
             .AsNoTracking()
             .Select(c => new GameStatsViewModel.CategoryCount
@@ -300,7 +361,8 @@ public class GamesController : Controller
             .ThenBy(x => x.CategoryName)
             .ToListAsync();
 
-        // 3) Moyenne de jeux "joués" par compte => ici: jeux achetés par utilisateur
+        //TO DO
+        // Moyenne de jeux "joués" par compte => ici: jeux achetés par utilisateur
         // - total d'utilisateurs
         // - total d'achats (ou distinct par user si tu veux éviter doublons)
         var usersCount = await _db.Users.AsNoTracking().CountAsync();

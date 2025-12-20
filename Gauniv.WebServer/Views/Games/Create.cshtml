@@ -11,7 +11,7 @@
     @Html.AntiForgeryToken()
 
     <div class="mb-3">
-        <label asp-for="Name" class="form-label"></label>
+        <label asp-for="Name" class="form-label">Nom</label>
         <input asp-for="Name" class="form-control" />
         <span asp-validation-for="Name" class="text-danger"></span>
     </div>
@@ -23,7 +23,7 @@
     </div>
 
     <div class="mb-3">
-        <label asp-for="Price" class="form-label"></label>
+        <label asp-for="Price" class="form-label">Prix</label>
         <input asp-for="Price" class="form-control" />
         <span asp-validation-for="Price" class="text-danger"></span>
     </div>
@@ -57,7 +57,7 @@
     </div>
 
     <div class="mb-3">
-        <label class="form-label">Payload (fichier)</label>
+        <label class="form-label">Fichier de jeu</label>
         <input type="file" name="payloadFile" class="form-control" />
         <span class="text-danger">@Html.ValidationMessage("payloadFile")</span>
     </div>
