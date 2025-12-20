@@ -1,0 +1,27 @@
+@model Gauniv.WebServer.Models.GameStatsViewModel
+
+<h1>Statistiques de jeux sur notre plateforme</h1>
+
+<ul>
+    <li>Nombre total de jeux disponibles : <b>@Model.TotalGames</b></li>
+    <li>Moyenne du nombre de jeux par compte : <b>@Model.AverageGamesPerAccount</b></li>
+</ul>
+
+<h2>Jeux par catégorie</h2>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Catégorie</th>
+            <th class="text-end">Nombre de jeux</th>
+        </tr>
+    </thead>
+    <tbody>
+    @foreach (var c in Model.GamesByCategory)
+    {
+        <tr>
+            <td>@c.CategoryName</td>
+            <td class="text-end">@c.GameCount</td>
+        </tr>
+    }
+    </tbody>
+</table>

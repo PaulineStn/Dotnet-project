@@ -5,6 +5,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Identity;
+using Gauniv.WebServer.Models;
+using X.PagedList;
 
 namespace Gauniv.WebServer.Controllers;
 
@@ -17,9 +19,14 @@ public class GamesController : Controller
     }
     private readonly IOptions<StorageOptions> _storageOptions;
 
-
     [AllowAnonymous]
-    public async Task<IActionResult> Index(int? categoryId, decimal? minPrice, decimal? maxPrice, string? search)
+    public async Task<IActionResult> Index(
+        int? categoryId,
+        decimal? minPrice,
+        decimal? maxPrice,
+        string? search,
+        int page = 1,
+        int pageSize = 10)
     {
         var query = _db.Games
             .Include(g => g.Categories)
@@ -38,12 +45,29 @@ public class GamesController : Controller
         if (!string.IsNullOrWhiteSpace(search))
             query = query.Where(g => g.Name.ToLower().Contains(search.ToLower()));
 
-        var local_games = await query.OrderBy(g => g.Id).ToListAsync();
+        query = query.OrderBy(g => g.Id);
 
-        // (optionnel) pour remplir une dropdown de catégories
-        ViewBag.Categories = await _db.Categories.AsNoTracking().OrderBy(c => c.Name).ToListAsync();
+        // catégories pour la dropdown
+        ViewBag.Categories = await _db.Categories
+            .AsNoTracking()
+            .OrderBy(c => c.Name)
+            .ToListAsync();
 
-        return View(local_games);
+        // pour conserver les filtres dans le pager
+        ViewBag.CurrentCategoryId = categoryId;
+        ViewBag.CurrentMinPrice = minPrice;
+        ViewBag.CurrentMaxPrice = maxPrice;
+        ViewBag.CurrentSearch = search;
+
+        // pagination (sans ToPagedList)
+        var totalCount = await query.CountAsync();
+        var items = await query.Skip((page - 1) * pageSize)
+                            .Take(pageSize)
+                            .ToListAsync();
+
+        var pagedGames = new StaticPagedList<Game>(items, page, pageSize, totalCount);
+
+        return View(pagedGames);
     }
 
     [Authorize(Roles = "Admin")]
@@ -80,7 +104,7 @@ public class GamesController : Controller
         _db.Games.Add(game);
         await _db.SaveChangesAsync();
         
-        // 2️⃣ Stockage du fichier sur disque (streaming)
+        // Stockage du fichier sur disque (streaming)
         var basePath = Path.Combine(
             _storageOptions.Value.GamesPath,
             game.Id.ToString());
@@ -102,7 +126,7 @@ public class GamesController : Controller
             await payloadFile.CopyToAsync(fileStream);
         }
 
-        // 3️⃣ Mise à jour du chemin
+        // Mise à jour du chemin
         game.FilePath = filePath;
         await _db.SaveChangesAsync();
         
@@ -256,6 +280,51 @@ public class GamesController : Controller
         // Redirection vers la liste "Mes jeux"
         return RedirectToAction(nameof(MyGames));
     }
+
+    [HttpGet]
+    public async Task<IActionResult> GamesStats()
+    {
+        // 1) Total jeux
+        var totalGames = await _db.Games.AsNoTracking().CountAsync();
+
+        // 2) Jeux par catégorie (y compris catégories à 0 jeu)
+        var gamesByCategory = await _db.Categories
+            .AsNoTracking()
+            .Select(c => new GameStatsViewModel.CategoryCount
+            {
+                CategoryId = c.Id,
+                CategoryName = c.Name,
+                GameCount = c.Games.Count() // nécessite la nav Category.Games
+            })
+            .OrderByDescending(x => x.GameCount)
+            .ThenBy(x => x.CategoryName)
+            .ToListAsync();
+
+        // 3) Moyenne de jeux "joués" par compte => ici: jeux achetés par utilisateur
+        // - total d'utilisateurs
+        // - total d'achats (ou distinct par user si tu veux éviter doublons)
+        var usersCount = await _db.Users.AsNoTracking().CountAsync();
+
+        var totalOwnedDistinct = await _db.UserGamePurchases
+            .AsNoTracking()
+            .Select(p => new { p.UserId, p.GameId })
+            .Distinct()
+            .CountAsync();
+
+        decimal avg = 0m;
+        if (usersCount > 0)
+            avg = (decimal)totalOwnedDistinct / usersCount;
+
+        var vm = new GameStatsViewModel
+        {
+            TotalGames = totalGames,
+            GamesByCategory = gamesByCategory,
+            AverageGamesPerAccount = Math.Round(avg, 2)
+        };
+
+        return View(vm); // Views/Games/Stats.cshtml
+    }
+
 
 
 }

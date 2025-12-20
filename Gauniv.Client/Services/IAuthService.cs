@@ -1,12 +1,25 @@
-using Gauniv.Network;
-
-namespace Gauniv.Client.Services;
-
 public interface IAuthService
 {
-    Task<bool> IsLoggedInAsync();
-    Task<AccessTokenResponse?> GetAccessTokenAsync();
-    Task LoginAsync(string username, string password);
-    Task LogoutAsync();
-    Task RefreshTokenIfNeededAsync();
+    bool IsAuthenticated { get; }
+    string AccessToken { get; }
+    void SetAuthentication(string token);
+    void Logout();
+}
+
+public class AuthService : IAuthService
+{
+    private string _accessToken;
+
+    public bool IsAuthenticated => !string.IsNullOrEmpty(_accessToken);
+    public string AccessToken => _accessToken;
+
+    public void SetAuthentication(string token)
+    {
+        _accessToken = token;
+    }
+
+    public void Logout()
+    {
+        _accessToken = null;
+    }
 }

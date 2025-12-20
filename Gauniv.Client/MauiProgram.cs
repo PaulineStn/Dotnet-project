@@ -36,6 +36,7 @@ using Gauniv.Client.Services;
 using Gauniv.Client.ViewModel;
 using Gauniv.Network;
 using Microsoft.Extensions.Logging;
+using Index = Gauniv.Client.Pages.Index;
 
 namespace Gauniv.Client
 {
@@ -60,11 +61,12 @@ namespace Gauniv.Client
 
             // Ajouter le ViewModel avec injection
             builder.Services.AddTransient<IndexViewModel>();
-
-            // Ajouter la page et l’injecter
+            builder.Services.AddTransient<Index>();
+            builder.Services.AddSingleton<IAuthRepository, ApiAuthRepository>();
+            builder.Services.AddTransient<LoginViewModel>();
             builder.Services.AddTransient<Pages.Index>();
-            
-            
+            builder.Services.AddTransient<BuyViewModel>();
+            builder.Services.AddSingleton<IAuthService, AuthService>();
             builder.Services.AddTransient<LoginViewModel>();
             builder.Services.AddTransient<Login>();
 

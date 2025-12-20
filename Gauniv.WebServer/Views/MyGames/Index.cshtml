@@ -1,4 +1,6 @@
-@model List<Gauniv.WebServer.Data.Game>
+@model X.PagedList.IPagedList<Gauniv.WebServer.Data.Game>
+@using X.PagedList.Mvc.Core;
+@using X.PagedList;
 
 @{
     ViewData["Title"] = "Mes jeux";
@@ -6,7 +8,40 @@
 
 <h1>Mes jeux</h1>
 
-@if (Model == null || !Model.Any())
+<form asp-action="Index" asp-controller="MyGames" method="get" class="row g-2 mt-3 mb-3">
+    <div class="col-md-4">
+        <label class="form-label">Recherche</label>
+        <input type="text"
+               name="search"
+               value="@Context.Request.Query["search"]"
+               class="form-control"
+               placeholder="Nom du jeu..." />
+    </div>
+
+    <div class="col-md-4">
+        <label class="form-label">Catégorie</label>
+        <select name="categoryId" class="form-select">
+            <option value="">Toutes</option>
+            @foreach (var c in (IEnumerable<Gauniv.WebServer.Data.Category>)ViewBag.Categories)
+            {
+                var selected = Context.Request.Query["categoryId"] == c.Id.ToString();
+                <option value="@c.Id" selected="@(selected ? "selected" : null)">@c.Name</option>
+            }
+        </select>
+    </div>
+
+    <div class="col-md-2 d-flex align-items-end">
+        <button type="submit" class="btn btn-primary w-100">OK</button>
+    </div>
+
+    <div class="col-md-2 d-flex align-items-end">
+        <a class="btn btn-outline-secondary w-100"
+           asp-controller="MyGames"
+           asp-action="Index">Réinitialiser</a>
+    </div>
+</form>
+
+@if (Model == null || Model.TotalItemCount == 0)
 {
     <div class="alert alert-info">
         Vous n'avez encore acheté aucun jeu.
@@ -56,4 +91,22 @@ else
         </tbody>
     </table>
 }
+
+<div class="mt-3">
+    @Html.PagedListPager(
+        Model,
+        page => Url.Action("Index", new {
+            page,
+            categoryId = ViewBag.CurrentCategoryId,
+            search = ViewBag.CurrentSearch
+        }),
+        new PagedListRenderOptions
+        {
+            UlElementClasses = new[] { "pagination" },
+            LiElementClasses = new[] { "page-item" },
+            PageClasses = new[] { "page-link" }
+        }
+    )
+</div>
+
 

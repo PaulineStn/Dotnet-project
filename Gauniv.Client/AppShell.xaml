@@ -30,6 +30,10 @@
         <ShellContent ContentTemplate="{DataTemplate local:Login}" />
     </FlyoutItem>
     
+    <FlyoutItem Title="Buy"
+                Route="buy">
+        <ShellContent ContentTemplate="{DataTemplate local:Login}" />
+    </FlyoutItem>
     <FlyoutItem Title="My Games"
                 Route="mygames">
         <FlyoutItem.Style>
