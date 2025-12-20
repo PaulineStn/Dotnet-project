@@ -8,6 +8,15 @@ L’objectif du projet est de développer :
 - une **application** permettant d’interagir avec le serveur (UI, appels API, affichage/édition des données).
 - une **application** en dur pour démarrer un jeu, acheter un jeu
 
+## Comptes Admin et User pour tester les applications
+Compte admin : 
+  email : admin@test.com
+  password : AdminPassword123!
+
+Compte User : 
+  email : test@test.com
+  password : Password123!
+
 ## Technologies
 
 - **.NET** : .NET 10
