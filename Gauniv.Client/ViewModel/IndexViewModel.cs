@@ -150,7 +150,20 @@ namespace Gauniv.Client.ViewModel
                     break;
 
                 case GameActionType.Play:
-                    await _installService.PlayAsync(game.Game.Id);
+                    // await _installService.PlayAsync(game.Game.Id);
+                    // break;
+                    game.SetPlayingState(true);
+                    await _installService.PlayAsync(game.Game.Id, () =>
+                    {
+                        // callback quand le jeu se termine
+                        game.SetPlayingState(false);
+                    });
+                    break;
+                
+                case GameActionType.Playing:
+                    // peut aussi arrêter via StopGame
+                    _installService.StopGame();
+                    game.SetPlayingState(false);
                     break;
             }
         }

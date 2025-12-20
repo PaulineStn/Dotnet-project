@@ -126,7 +126,7 @@ public class GameInstallService : IGameInstallService
         SaveInstalledGames();
     }
 
-    public Task PlayAsync(int gameId)
+    public Task PlayAsync(int gameId, Action? onExited = null)
     {
         if (!IsInstalled(gameId))
             throw new InvalidOperationException("Jeu non installé");
@@ -140,47 +140,72 @@ public class GameInstallService : IGameInstallService
 
         _gameTask = Task.Run(() =>
         {
+            var startInfo = new ProcessStartInfo
+            {
+                FileName = exePath,
+                UseShellExecute = true
+            };
+
+            _runningGame = Process.Start(startInfo);
+
+            Console.WriteLine($"🎮 Jeu {gameId} lancé (PID {_runningGame?.Id})");
+
             try
             {
-                var startInfo = new ProcessStartInfo
+                while (!_gameCts.Token.IsCancellationRequested && !_runningGame.HasExited)
                 {
-                    FileName = exePath,
-                    UseShellExecute = true
-                };
-
-                using var process = Process.Start(startInfo);
-                _runningGame = process;
-
-                Console.WriteLine($"🎮 Jeu {gameId} lancé (PID {process?.Id})");
-
-                // Attend que le jeu se termine ou que l'on annule
-                while (!_gameCts!.IsCancellationRequested && !_runningGame!.HasExited)
-                {
-                    Task.Delay(500, token).Wait(token);
+                    Task.Delay(500, _gameCts.Token).Wait();
                 }
 
-                if (!_runningGame!.HasExited)
+                if (!_runningGame.HasExited)
                     _runningGame.Kill();
-
-                Console.WriteLine("🛑 Jeu arrêté");
             }
             catch (OperationCanceledException)
             {
                 if (_runningGame != null && !_runningGame.HasExited)
                     _runningGame.Kill();
-                Console.WriteLine("🛑 Jeu annulé");
             }
-        }, token);
+            finally
+            {
+                _runningGame = null;
+                _gameTask = null;
+                _gameCts.Dispose();
+                _gameCts = null;
+                onExited?.Invoke();
+                Console.WriteLine("🛑 Jeu terminé");
+            }
+        }, _gameCts.Token);
 
         return _gameTask;
     }
 
     public void StopGame()
     {
-        if (_gameCts != null && !_gameCts.IsCancellationRequested)
+        if (_gameCts == null) return;
+
+        try
         {
-            _gameCts.Cancel();
+            if (!_gameCts.IsCancellationRequested)
+                _gameCts.Cancel();
+
+            if (_runningGame != null && !_runningGame.HasExited)
+            {
+                _runningGame.Kill();
+                Console.WriteLine($"🛑 Jeu arrêté (PID {_runningGame.Id})");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Erreur lors de l'arrêt du jeu : {ex.Message}");
+        }
+        finally
+        {
+            _runningGame = null;
+            _gameTask = null;
+            _gameCts.Dispose();
+            _gameCts = null;
         }
     }
+
     
 }

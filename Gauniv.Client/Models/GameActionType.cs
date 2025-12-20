@@ -6,6 +6,7 @@ namespace Gauniv.Client.Models
         Download,
         Update,
         Play,
-        LoginRequired
+        LoginRequired,
+        Playing
     }
 }

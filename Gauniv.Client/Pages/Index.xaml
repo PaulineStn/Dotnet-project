@@ -124,22 +124,31 @@ Please respect the team's standards for any future contribution
                                        FontAttributes="Bold"
                                        TextColor="{StaticResource Primary}"/>
                             </VerticalStackLayout>
-
-                            <!-- Bouton Action Dynamic à droite -->
-                            <Button Grid.Column="1"
-                                    Grid.Row="1"
-                                    Text="{Binding ActionLabel}"
-                                    Command="{Binding Source={RelativeSource AncestorType={x:Type vm:IndexViewModel}},
+                            
+                            
+                            <StackLayout Grid.Column="1"
+                                         Grid.Row="1">
+                                <!-- Bouton Action Dynamic à droite -->
+                                <Button 
+                                        Text="{Binding ActionLabel}"
+                                        Command="{Binding Source={RelativeSource AncestorType={x:Type vm:IndexViewModel}},
                                     Path=GameActionCommand}"
-                                    FontSize="13"
-                                    FontAttributes="Bold"
-                                    BackgroundColor="{StaticResource Primary}"
-                                    TextColor="White"
-                                    CornerRadius="14"
-                                    HeightRequest="34"
-                                    HorizontalOptions="End"
+                                        FontSize="13"
+                                        FontAttributes="Bold"
+                                        BackgroundColor="{StaticResource Primary}"
+                                        TextColor="White"
+                                        CornerRadius="14"
+                                        HeightRequest="34"
+                                        HorizontalOptions="End"
                                     
-                                    CommandParameter="{Binding .}"/>
+                                        CommandParameter="{Binding .}"/>
+                                <Button Text="Stop" 
+                                        Command="{Binding Source={RelativeSource AncestorType={x:Type vm:IndexViewModel}},
+                                    Path=GameActionCommand}"
+                                        IsVisible="{Binding IsGameRunning}" />
+                            </StackLayout>
+
+
                         </Grid>
 
                     </Frame>

@@ -1,4 +1,5 @@
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using Gauniv.Client.Models;
 using Gauniv.Client.ViewModel;
 using Gauniv.Network;
@@ -11,9 +12,14 @@ public partial class GameItemViewModel : ObservableObject
     public bool IsInstalled { get; }
     public bool IsLoggedIn { get; }
     public string? LocalVersion { get; }
+    
+    [ObservableProperty]
+    private bool isGameRunning;
 
     [ObservableProperty]
     private GameActionType action;
+
+    private readonly IGameInstallService _installService;
 
     public GameItemViewModel(
         GameDto game,
@@ -24,13 +30,14 @@ public partial class GameItemViewModel : ObservableObject
         Game = game;
         IsOwned = isOwned;
         IsLoggedIn = isLoggedIn;
+        _installService = installService;
 
         IsInstalled = installService.IsInstalled(game.Id);
         LocalVersion = installService.GetLocalVersion(game.Id);
 
         ComputeAction();
     }
-
+    
     private void ComputeAction()
     {
 
@@ -69,4 +76,25 @@ public partial class GameItemViewModel : ObservableObject
         GameActionType.Play => "Play",
         _ => ""
     };
+
+    public void SetPlayingState(bool running)
+    {
+        if (running)
+        {
+            Action = GameActionType.Playing;
+            IsGameRunning = true;
+        }
+        else
+        {
+            Action = GameActionType.Play;
+            IsGameRunning = false;
+        }
+    }
+    
+    [RelayCommand]
+    private void StopGame(IGameInstallService installService)
+    {
+        _installService.StopGame();
+    }
+
 }

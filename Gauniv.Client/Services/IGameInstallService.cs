@@ -25,5 +25,8 @@ public interface IGameInstallService
     /// <summary>
     /// Lance le jeu
     /// </summary>
-    Task PlayAsync(int gameId);
+    Task PlayAsync(int gameId, Action? onExited = null);
+
+    public void StopGame();
+
 }
