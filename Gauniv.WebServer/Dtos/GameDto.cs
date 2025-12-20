@@ -8,6 +8,11 @@
         string Description,
         IEnumerable<CategoryDto> Categories
     );
+    
+    public record UserPurchasedGamesIdsDto(
+        IReadOnlyCollection<int> GameIds
+    );
+
 
     public record GameDetailDto(
         int Id,

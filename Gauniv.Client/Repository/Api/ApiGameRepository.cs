@@ -13,6 +13,18 @@ public class ApiGameRepository : IGameRepository
 
     public async Task<IReadOnlyList<GameDto>> GetAllAsync()
     {
+        // await _api.GetMyPurchasesIdsAsync(
+        //     false,
+        //     false,
+        //     new LoginRequest
+        //     {
+        //         Email = "d",
+        //         Password = "d"
+        //     }
+        // ).Result
+        //
+        //     });
         return (IReadOnlyList<GameDto>)await _api.GetAllAsync(null, null, null, null, null, null);
+        
     }
 }

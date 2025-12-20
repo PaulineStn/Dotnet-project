@@ -55,6 +55,5 @@ namespace Gauniv.WebServer.Data
         
         // Game ↔ User (many-to-many avec payload)
         public ICollection<UserGamePurchase> UserGamePurchases { get; set; } = new List<UserGamePurchase>(); // liste des utilisateurs ayant acheté le jeu
-
     }
 }

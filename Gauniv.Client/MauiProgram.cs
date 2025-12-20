@@ -32,6 +32,7 @@ using Gauniv.Client.Pages;
 using Gauniv.Client.Repository;
 using Gauniv.Client.Repository.Api;
 using Gauniv.Client.Repository.Static;
+using Gauniv.Client.Services;
 using Gauniv.Client.ViewModel;
 using Gauniv.Network;
 using Microsoft.Extensions.Logging;
@@ -79,7 +80,10 @@ namespace Gauniv.Client
             {
                 builder.Services.AddSingleton<IGameRepository, ApiGameRepository>();
             }
-
+            
+            builder.Services.AddSingleton<IGameInstallService, GameInstallService>();
+            builder.Services.AddSingleton<IAuthService, AuthService>();
+            builder.Services.AddSingleton<IUserRepository, UserRepository>();
 
             var app = builder.Build();
 

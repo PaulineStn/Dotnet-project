@@ -41,6 +41,7 @@ using MapsterMapper;
 using Mapster;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using System.Security.Claims;
 
 
 namespace Gauniv.WebServer.Api
@@ -367,6 +368,20 @@ namespace Gauniv.WebServer.Api
                 "Game purchased successfully",
                 gameId
             ));
+        }
+        
+        [Authorize]
+        [HttpGet]
+        public async Task<ActionResult<UserPurchasedGamesIdsDto>> GetMyPurchasesIds()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            var gameIds = await _db.UserGamePurchases
+                .Where(p => p.UserId == userId)
+                .Select(p => p.GameId)
+                .ToListAsync();
+
+            return Ok(new UserPurchasedGamesIdsDto(gameIds));
         }
 
     }
