@@ -5,10 +5,12 @@ namespace Gauniv.Client.Repository.Api;
 public class ApiAuthRepository : IAuthRepository
 {
     private readonly ApiClient _api;
+    private readonly IAuthService _authService;
 
-    public ApiAuthRepository(ApiClient api)
+    public ApiAuthRepository(ApiClient api, IAuthService authService)
     {
         _api = api;
+        _authService = authService;
     }
 
     public async Task<bool> LoginAsync(string email, string password)
@@ -22,7 +24,8 @@ public class ApiAuthRepository : IAuthRepository
             };
 
             var response = await _api.LoginAsync(null, null, request);
-            return response != null;
+            _authService.SetAuthentication(response.AccessToken);
+            return true;
         }
         catch
         {

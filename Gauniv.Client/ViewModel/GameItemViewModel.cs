@@ -9,6 +9,7 @@ public partial class GameItemViewModel : ObservableObject
 
     public bool IsOwned { get; }
     public bool IsInstalled { get; }
+    public bool IsLoggedIn { get; }
     public string? LocalVersion { get; }
 
     [ObservableProperty]
@@ -17,10 +18,12 @@ public partial class GameItemViewModel : ObservableObject
     public GameItemViewModel(
         GameDto game,
         bool isOwned,
+        bool isLoggedIn,
         IGameInstallService installService)
     {
         Game = game;
         IsOwned = isOwned;
+        IsLoggedIn = isLoggedIn;
 
         IsInstalled = installService.IsInstalled(game.Id);
         LocalVersion = installService.GetLocalVersion(game.Id);
@@ -30,6 +33,12 @@ public partial class GameItemViewModel : ObservableObject
 
     private void ComputeAction()
     {
+
+        if (!IsLoggedIn)
+        {
+            Action =  GameActionType.LoginRequired;
+            return;
+        }
         if (!IsOwned)
         {
             Action = GameActionType.Buy;
@@ -50,4 +59,14 @@ public partial class GameItemViewModel : ObservableObject
 
         Action = GameActionType.Play;
     }
+    
+    public string ActionLabel => Action switch
+    {
+        GameActionType.LoginRequired => "Login",
+        GameActionType.Buy => "Buy",
+        GameActionType.Download => "Download",
+        GameActionType.Update => "Update",
+        GameActionType.Play => "Play",
+        _ => ""
+    };
 }

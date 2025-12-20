@@ -1,6 +1,5 @@
 using Gauniv.Network;
 
-namespace Gauniv.Client.Services;
 
 using Newtonsoft.Json;
 using Microsoft.Maui.Storage;
@@ -77,20 +76,60 @@ using Microsoft.Maui.Storage;
 //     }
 // }
 
-public class AuthService : IAuthService
+using System;
+
+namespace Gauniv.Client.Services
 {
-    private string _accessToken;
-
-    public bool IsAuthenticated => !string.IsNullOrEmpty(_accessToken);
-    public string AccessToken => _accessToken;
-
-    public void SetAuthentication(string token)
+    public class AuthService : IAuthService
     {
-        _accessToken = token;
-    }
+        private const string AccessTokenKey = "ACCESS_TOKEN";
 
-    public void Logout()
-    {
-        _accessToken = null;
+        public bool IsAuthenticated => !string.IsNullOrEmpty(AccessToken);
+
+        public string AccessToken
+        {
+            get
+            {
+                var token = Preferences.Get(AccessTokenKey, null);
+                if (token == null)
+                    throw new InvalidOperationException("Access token is not set.");
+                return token;
+            }
+        }
+
+        public Task<string> GetAccessTokenAsync()
+        {
+            var token = Preferences.Get(AccessTokenKey, null);
+            if (token == null)
+                throw new InvalidOperationException("Access token is not set.");
+            return Task.FromResult(token);
+        }
+
+
+        public void SetAuthentication(string token)
+        {
+            if (string.IsNullOrEmpty(token))
+                throw new ArgumentNullException(nameof(token));
+
+            Preferences.Set(AccessTokenKey, token);
+        }
+
+        public void Logout()
+        {
+            Preferences.Remove(AccessTokenKey);
+        }
+        
+        public async Task<bool> IsLoggedInAsync()
+        {
+            try
+            {
+                var token = await GetAccessTokenAsync();
+                return !string.IsNullOrEmpty(token);
+            }
+            catch (InvalidOperationException)
+            {
+                return false;
+            }
+        }
     }
 }

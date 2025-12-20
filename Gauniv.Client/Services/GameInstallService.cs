@@ -16,10 +16,12 @@ public class GameInstallService : IGameInstallService
     private CancellationTokenSource? _downloadCts;
     private Task? _gameTask;
     private CancellationTokenSource? _gameCts;
+    private readonly IAuthService _authService;
 
-    public GameInstallService(ApiClient api)
+    public GameInstallService(ApiClient api, IAuthService authService)
     {
         _api = api;
+        _authService = authService;
         _installFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Games");
 
         if (!Directory.Exists(_installFolder))
@@ -63,10 +65,19 @@ public class GameInstallService : IGameInstallService
 
         _downloadCts = new CancellationTokenSource();
 
-        // On récupère le flux depuis NSwag en HttpClient
+        // Get the HttpClient from NSwag-generated ApiClient
         var client = typeof(ApiClient)
             .GetField("_httpClient", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)!
             .GetValue(_api) as HttpClient ?? throw new InvalidOperationException();
+
+        // Ensure user is authenticated and get token
+        var token = await _authService.GetAccessTokenAsync();
+        if (token == null)
+            throw new InvalidOperationException("User is not logged in.");
+        
+        // Set Authorization header
+        client.DefaultRequestHeaders.Authorization =
+            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
 
         var url = $"api/1.0.0/Games/Download/{gameId}";
         using var response = await client.GetAsync(url, HttpCompletionOption.ResponseHeadersRead, _downloadCts.Token);

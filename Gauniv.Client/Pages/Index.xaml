@@ -33,6 +33,7 @@ Please respect the team's standards for any future contribution
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:network="clr-namespace:Gauniv.Network;assembly=Gauniv.Network"
+             xmlns:global="clr-namespace:"
              x:Class="Gauniv.Client.Pages.Index"
              Title="Index"
              x:DataType="vm:IndexViewModel"
@@ -81,7 +82,7 @@ Please respect the team's standards for any future contribution
             </CollectionView.ItemsLayout>
             
             <CollectionView.ItemTemplate>
-                <DataTemplate x:DataType="network:GameDto">
+                <DataTemplate x:DataType="global:GameItemViewModel">
                     <Frame Padding="0" 
                            CornerRadius="20" 
                            HasShadow="True"
@@ -106,28 +107,30 @@ Please respect the team's standards for any future contribution
                             <VerticalStackLayout Grid.Column="1"
                                                  Spacing="2">
 
-                                <Label Text="{Binding Name}"
+                                <Label Text="{Binding Game.Name}"
                                        FontSize="16"
                                        FontAttributes="Bold"
                                        LineBreakMode="TailTruncation"/>
 
-                                <Label Text="{Binding Description}"
+                                <Label Text="{Binding Game.Description}"
                                        FontSize="13"
                                        MaxLines="1"
                                        LineBreakMode="TailTruncation"
                                        TextColor="{StaticResource Gray600}"/>
 
                                 <!-- Prix -->
-                                <Label Text="{Binding Price, StringFormat='{}{0} €'}"
+                                <Label Text="{Binding Game.Price, StringFormat='{}{0} €'}"
                                        FontSize="15"
                                        FontAttributes="Bold"
                                        TextColor="{StaticResource Primary}"/>
                             </VerticalStackLayout>
 
-                            <!-- Bouton Acheter à droite -->
+                            <!-- Bouton Action Dynamic à droite -->
                             <Button Grid.Column="1"
                                     Grid.Row="1"
-                                    Text="Buy"
+                                    Text="{Binding ActionLabel}"
+                                    Command="{Binding Source={RelativeSource AncestorType={x:Type vm:IndexViewModel}},
+                                    Path=GameActionCommand}"
                                     FontSize="13"
                                     FontAttributes="Bold"
                                     BackgroundColor="{StaticResource Primary}"
@@ -135,8 +138,6 @@ Please respect the team's standards for any future contribution
                                     CornerRadius="14"
                                     HeightRequest="34"
                                     HorizontalOptions="End"
-                                    Command="{Binding Source={RelativeSource AncestorType={x:Type vm:IndexViewModel}},
-                                    Path=BuyGameCommand}"
                                     
                                     CommandParameter="{Binding .}"/>
                         </Grid>

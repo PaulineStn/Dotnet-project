@@ -4,4 +4,7 @@ public interface IAuthService
     string AccessToken { get; }
     void SetAuthentication(string token);
     void Logout();
+
+    public Task<string> GetAccessTokenAsync();
+    public Task<bool> IsLoggedInAsync();
 }

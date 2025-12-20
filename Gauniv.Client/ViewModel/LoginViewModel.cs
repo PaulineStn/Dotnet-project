@@ -31,6 +31,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Gauniv.Client.Repository;
 using Gauniv.Network;
+using Index = Gauniv.Client.Pages.Index;
 
 namespace Gauniv.Client.ViewModel
 {
@@ -38,7 +39,8 @@ namespace Gauniv.Client.ViewModel
     public partial class LoginViewModel : ObservableObject
     {
         private readonly IAuthRepository _authRepository;
-
+        // private readonly IServiceProvider _serviceProvider;
+        
         [ObservableProperty]
         private string email;
 
@@ -81,7 +83,8 @@ namespace Gauniv.Client.ViewModel
 
                 if (isAuthenticated)
                 {
-                    await Shell.Current.GoToAsync("//buy");
+                    // await Shell.Current.GoToAsync("//buy");
+                    await NavigateToIndexGames();
                 }
                 else
                 {
@@ -91,7 +94,7 @@ namespace Gauniv.Client.ViewModel
             }
             catch (Exception ex)
             {
-                ErrorMessage = "Erreur de connexion : " + ex.Message;
+                ErrorMessage = "Erreur de connexion : " + ex;
                 HasError = true;
             }
             finally
@@ -105,5 +108,13 @@ namespace Gauniv.Client.ViewModel
         {
             Console.WriteLine("Navigation vers inscription");
         }
+        
+        private async Task NavigateToIndexGames()
+        {
+            await Shell.Current.GoToAsync("/");
+
+        }
     }
+    
+    
 }
