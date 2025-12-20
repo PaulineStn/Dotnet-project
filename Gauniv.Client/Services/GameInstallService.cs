@@ -131,7 +131,7 @@ public class GameInstallService : IGameInstallService
     private string GetFileName(int gameId)
     {
         return $"{gameId}.exe";
-        // return $"{gameId}.dmg";
+        // return $"{gameId}.app";
     }
 
     public Task PlayAsync(int gameId, Action? onExited = null)
