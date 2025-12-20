@@ -26,13 +26,18 @@
 // 
 // Please respect the team's standards for any future contribution
 #endregion
+
+using Gauniv.Client.ViewModel;
+
 namespace Gauniv.Client
 {
     public partial class AppShell : Shell
     {
-        public AppShell()
+        public AppShell(MenuViewModel menuViewModel)
         {
             InitializeComponent();
+
+            BindingContext = menuViewModel;
         }
     }
 }

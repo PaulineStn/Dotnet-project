@@ -64,12 +64,13 @@ namespace Gauniv.Client
             builder.Services.AddTransient<Index>();
             builder.Services.AddSingleton<IAuthRepository, ApiAuthRepository>();
             builder.Services.AddTransient<LoginViewModel>();
-            builder.Services.AddTransient<Pages.Index>();
+            builder.Services.AddTransient<Index>();
             builder.Services.AddTransient<BuyViewModel>();
             builder.Services.AddSingleton<IAuthService, AuthService>();
             builder.Services.AddTransient<LoginViewModel>();
             builder.Services.AddTransient<Login>();
-
+            builder.Services.AddSingleton<MenuViewModel>();
+            builder.Services.AddSingleton<AppShell>();
 #if DEBUG
     		builder.Logging.AddDebug();
 #endif

@@ -111,7 +111,7 @@ namespace Gauniv.Client.ViewModel
         
         private async Task NavigateToIndexGames()
         {
-            await Shell.Current.GoToAsync("/");
+            await Shell.Current.GoToAsync("//games");
 
         }
     }

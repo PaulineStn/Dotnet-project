@@ -146,7 +146,7 @@ namespace Gauniv.Client.ViewModel
 
                 case GameActionType.Update:
                     await _installService.UpdateAsync(game.Game.Id);
-                    // await LoadGamesAsync();
+                    await LoadGamesAsync();
                     break;
 
                 case GameActionType.Play:

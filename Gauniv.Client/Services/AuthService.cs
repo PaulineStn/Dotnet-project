@@ -119,6 +119,11 @@ namespace Gauniv.Client.Services
             Preferences.Remove(AccessTokenKey);
         }
         
+         public async Task LogoutAsync()
+         {
+             Preferences.Remove(AccessTokenKey);
+         }
+        
         public async Task<bool> IsLoggedInAsync()
         {
             try

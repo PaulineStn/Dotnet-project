@@ -54,7 +54,7 @@ public class GameInstallService : IGameInstallService
 
     public string? GetLocalVersion(int gameId) =>
         _installedGames.TryGetValue(gameId, out var version) ? version : null;
-
+    
     /// <summary>
     /// Télécharge le jeu et renvoie le chemin complet
     /// </summary>
@@ -64,16 +64,20 @@ public class GameInstallService : IGameInstallService
             return Path.Combine(_installFolder, $"{gameId}.exe");
 
         _downloadCts = new CancellationTokenSource();
+        
+        // Ensure user is authenticated and get token
+        var token = await _authService.GetAccessTokenAsync();
+        if (token == null)
+            throw new InvalidOperationException("User is not logged in.");
+        _api.BearerToken = token;
+        var game = await _api.GetAsync(gameId);
 
         // Get the HttpClient from NSwag-generated ApiClient
         var client = typeof(ApiClient)
             .GetField("_httpClient", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)!
             .GetValue(_api) as HttpClient ?? throw new InvalidOperationException();
 
-        // Ensure user is authenticated and get token
-        var token = await _authService.GetAccessTokenAsync();
-        if (token == null)
-            throw new InvalidOperationException("User is not logged in.");
+        
         
         // Set Authorization header
         client.DefaultRequestHeaders.Authorization =
@@ -101,7 +105,7 @@ public class GameInstallService : IGameInstallService
                 progress?.Report((double)totalRead / total * 100);
         }
 
-        _installedGames[gameId] = "1.0.0"; // version initiale
+        _installedGames[gameId] = game.CurrentVersion;
         SaveInstalledGames();
 
         return filePath;
@@ -117,7 +121,7 @@ public class GameInstallService : IGameInstallService
         if (!IsInstalled(gameId))
             throw new InvalidOperationException("Jeu non installé");
 
-        await Task.Delay(500); // simulation update
+        await DownloadAsync(gameId);
         _installedGames[gameId] = DateTime.UtcNow.Ticks.ToString();
         SaveInstalledGames();
     }

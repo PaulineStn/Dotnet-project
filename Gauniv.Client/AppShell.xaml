@@ -9,7 +9,6 @@
        Shell.FlyoutBehavior="Flyout"
        Shell.NavBarIsVisible="false"
        Title="Gauniv.Client"
-       BindingContext="{vm:MenuViewModel}"
        x:DataType="vm:MenuViewModel">
 
     <!--<MenuItem Text="Help"
@@ -50,4 +49,8 @@
         </FlyoutItem.Style>
         <ShellContent ContentTemplate="{DataTemplate local:MyGames}" />
     </FlyoutItem>
+    <!-- Bouton logout -->
+    <MenuItem Text="Se déconnecter"
+              IconImageSource="logout.png"
+              Command="{Binding LogoutCommand}"/>
 </Shell>
