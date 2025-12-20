@@ -10,26 +10,46 @@
 
 <h1>Modifier le jeu</h1>
 
-<form asp-action="Edit" asp-route-id="@Model.Id" method="post">
+<form asp-action="Edit" asp-route-id="@Model.Id" method="post" enctype="multipart/form-data">
     @Html.AntiForgeryToken()
     <input type="hidden" asp-for="Id" />
 
     <div class="mb-3">
-        <label asp-for="Name"></label>
+        <label asp-for="Name">Nom</label>
         <input asp-for="Name" class="form-control" />
         <span asp-validation-for="Name" class="text-danger"></span>
     </div>
 
     <div class="mb-3">
-        <label asp-for="Price"></label>
+        <label asp-for="Description"></label>
+        <textarea asp-for="Description" class="form-control"></textarea>
+        <span asp-validation-for="Description" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Price">Prix</label>
         <input asp-for="Price" class="form-control" />
         <span asp-validation-for="Price" class="text-danger"></span>
     </div>
 
     <div class="mb-3">
-        <label asp-for="CurrentVersion"></label>
+        <label asp-for="CurrentVersion">Nouvelle version</label>
         <input asp-for="CurrentVersion" class="form-control" />
         <span asp-validation-for="CurrentVersion" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Nouveau fichier de jeu</label>
+        <input type="file" name="payloadFile" class="form-control" />
+        <span class="text-danger">@Html.ValidationMessage("payloadFile")</span>
+
+        @* Optionnel: afficher le fichier actuel *@
+        @if (!string.IsNullOrWhiteSpace(Model.FilePath))
+        {
+            <div class="form-text">
+                Fichier actuel : @System.IO.Path.GetFileName(Model.FilePath)
+            </div>
+        }
     </div>
 
     <div class="mb-3">

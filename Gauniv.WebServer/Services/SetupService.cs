@@ -233,7 +233,6 @@ namespace Gauniv.WebServer.Services
                         
                         // Console.WriteLine($"basePath:  {basePath}");
 
-
                         var fileName = $"game_{game.Id}_{game.CurrentVersion}.bin";
                         var filePath = Path.Combine(basePath, fileName);
 
