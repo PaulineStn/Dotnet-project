@@ -15,7 +15,7 @@ public interface IGameInstallService
     /// <summary>
     /// Télécharge le jeu localement
     /// </summary>
-    Task DownloadAsync(int gameId);
+    // Task DownloadAsync(int gameId);
 
     /// <summary>
     /// Met à jour le jeu installé

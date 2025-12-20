@@ -1,21 +1,29 @@
-using Gauniv.Client.ViewModel;
-
-namespace Gauniv.Client.Services;
-
 using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.IO;
 using System.Text.Json;
+using System.Threading;
+using Gauniv.Client.ViewModel;
+using Gauniv.Network;
 
 public class GameInstallService : IGameInstallService
 {
     private readonly string _installFolder;
     private readonly ConcurrentDictionary<int, string> _installedGames;
+    private readonly ApiClient _api;
 
-    public GameInstallService()
+    private Process? _runningGame;
+    private CancellationTokenSource? _downloadCts;
+    private Task? _gameTask;
+    private CancellationTokenSource? _gameCts;
+
+    public GameInstallService(ApiClient api)
     {
-        _installFolder = Path.Combine(FileSystem.AppDataDirectory, "Games");
-       if(!Directory.Exists(_installFolder)) 
-           Directory.CreateDirectory(_installFolder);
+        _api = api;
+        _installFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Games");
+
+        if (!Directory.Exists(_installFolder))
+            Directory.CreateDirectory(_installFolder);
 
         _installedGames = new ConcurrentDictionary<int, string>();
         LoadInstalledGames();
@@ -24,8 +32,7 @@ public class GameInstallService : IGameInstallService
     private void LoadInstalledGames()
     {
         var jsonFile = Path.Combine(_installFolder, "installed.json");
-        if (!File.Exists(jsonFile))
-            return;
+        if (!File.Exists(jsonFile)) return;
 
         var json = File.ReadAllText(jsonFile);
         var data = JsonSerializer.Deserialize<Dictionary<int, string>>(json);
@@ -41,41 +48,124 @@ public class GameInstallService : IGameInstallService
         File.WriteAllText(jsonFile, json);
     }
 
-    public bool IsInstalled(int gameId)
-    {
-        return _installedGames.ContainsKey(gameId);
-    }
+    public bool IsInstalled(int gameId) => _installedGames.ContainsKey(gameId);
 
-    public string? GetLocalVersion(int gameId)
-    {
-        return _installedGames.TryGetValue(gameId, out var version) ? version : null;
-    }
+    public string? GetLocalVersion(int gameId) =>
+        _installedGames.TryGetValue(gameId, out var version) ? version : null;
 
-    public async Task DownloadAsync(int gameId)
+    /// <summary>
+    /// Télécharge le jeu et renvoie le chemin complet
+    /// </summary>
+    public async Task<string> DownloadAsync(int gameId, IProgress<double>? progress = null)
     {
-        // Simulation téléchargement
-        await Task.Delay(1000); // simuler download
+        if (IsInstalled(gameId))
+            return Path.Combine(_installFolder, $"{gameId}.exe");
+
+        _downloadCts = new CancellationTokenSource();
+
+        // On récupère le flux depuis NSwag en HttpClient
+        var client = typeof(ApiClient)
+            .GetField("_httpClient", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)!
+            .GetValue(_api) as HttpClient ?? throw new InvalidOperationException();
+
+        var url = $"api/1.0.0/Games/Download/{gameId}";
+        using var response = await client.GetAsync(url, HttpCompletionOption.ResponseHeadersRead, _downloadCts.Token);
+        response.EnsureSuccessStatusCode();
+
+        var total = response.Content.Headers.ContentLength ?? -1L;
+        var filePath = Path.Combine(_installFolder, $"{gameId}.exe");
+
+        await using var stream = await response.Content.ReadAsStreamAsync(_downloadCts.Token);
+        await using var fs = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.None, 81920, true);
+
+        var buffer = new byte[81920];
+        long totalRead = 0;
+        int read;
+
+        while ((read = await stream.ReadAsync(buffer.AsMemory(0, buffer.Length), _downloadCts.Token)) > 0)
+        {
+            await fs.WriteAsync(buffer.AsMemory(0, read), _downloadCts.Token);
+            totalRead += read;
+            if (total > 0)
+                progress?.Report((double)totalRead / total * 100);
+        }
+
         _installedGames[gameId] = "1.0.0"; // version initiale
         SaveInstalledGames();
+
+        return filePath;
+    }
+
+    public void CancelDownload()
+    {
+        _downloadCts?.Cancel();
     }
 
     public async Task UpdateAsync(int gameId)
     {
-        if (!_installedGames.ContainsKey(gameId))
+        if (!IsInstalled(gameId))
             throw new InvalidOperationException("Jeu non installé");
 
-        await Task.Delay(500); // simuler update
-        _installedGames[gameId] = DateTime.UtcNow.Ticks.ToString(); // version simulée
+        await Task.Delay(500); // simulation update
+        _installedGames[gameId] = DateTime.UtcNow.Ticks.ToString();
         SaveInstalledGames();
     }
 
-    public async Task PlayAsync(int gameId)
+    public Task PlayAsync(int gameId)
     {
-        if (!_installedGames.ContainsKey(gameId))
+        if (!IsInstalled(gameId))
             throw new InvalidOperationException("Jeu non installé");
 
-        // Simulation lancement
-        await Task.Delay(200);
-        Console.WriteLine($"🎮 Lancement du jeu {gameId}...");
+        var exePath = Path.Combine(_installFolder, $"{gameId}.exe");
+        if (!File.Exists(exePath))
+            throw new FileNotFoundException("Fichier du jeu introuvable", exePath);
+
+        _gameCts = new CancellationTokenSource();
+        var token = _gameCts.Token;
+
+        _gameTask = Task.Run(() =>
+        {
+            try
+            {
+                var startInfo = new ProcessStartInfo
+                {
+                    FileName = exePath,
+                    UseShellExecute = true
+                };
+
+                using var process = Process.Start(startInfo);
+                _runningGame = process;
+
+                Console.WriteLine($"🎮 Jeu {gameId} lancé (PID {process?.Id})");
+
+                // Attend que le jeu se termine ou que l'on annule
+                while (!_gameCts!.IsCancellationRequested && !_runningGame!.HasExited)
+                {
+                    Task.Delay(500, token).Wait(token);
+                }
+
+                if (!_runningGame!.HasExited)
+                    _runningGame.Kill();
+
+                Console.WriteLine("🛑 Jeu arrêté");
+            }
+            catch (OperationCanceledException)
+            {
+                if (_runningGame != null && !_runningGame.HasExited)
+                    _runningGame.Kill();
+                Console.WriteLine("🛑 Jeu annulé");
+            }
+        }, token);
+
+        return _gameTask;
     }
+
+    public void StopGame()
+    {
+        if (_gameCts != null && !_gameCts.IsCancellationRequested)
+        {
+            _gameCts.Cancel();
+        }
+    }
+    
 }
