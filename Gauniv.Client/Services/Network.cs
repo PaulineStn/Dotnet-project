@@ -48,10 +48,10 @@ namespace Gauniv.Client.Services
 
         public NetworkService() {
             httpClient = new HttpClient();
-            Token = null;
+            Token = string.Empty;
         }
 
-        public event Action OnConnected;
+        public event Action? OnConnected;
 
     }
 }
