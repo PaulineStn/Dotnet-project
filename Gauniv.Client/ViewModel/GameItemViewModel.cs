@@ -90,13 +90,13 @@ public partial class GameItemViewModel : ObservableObject
     {
         if (running)
         {
-            Action = GameActionType.Playing;
             IsGameRunning = true;
+            Action = GameActionType.Playing;
         }
         else
         {
-            Action = GameActionType.Play;
             IsGameRunning = false;
+            Action = GameActionType.Play;
         }
     }
     
