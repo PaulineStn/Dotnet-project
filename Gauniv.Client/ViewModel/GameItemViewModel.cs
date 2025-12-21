@@ -66,6 +66,12 @@ public partial class GameItemViewModel : ObservableObject
             return;
         }
 
+        if (IsGameRunning)
+        {
+            Action =  GameActionType.Playing;
+            return;
+        }
+
         Action = GameActionType.Play;
     }
     
@@ -76,6 +82,7 @@ public partial class GameItemViewModel : ObservableObject
         GameActionType.Download => "Download",
         GameActionType.Update => "Update",
         GameActionType.Play => "Play",
+        GameActionType.Playing => "Playing",
         _ => ""
     };
 
@@ -83,16 +90,21 @@ public partial class GameItemViewModel : ObservableObject
     {
         if (running)
         {
-            Action = GameActionType.Playing;
             IsGameRunning = true;
+            Action = GameActionType.Playing;
         }
         else
         {
-            Action = GameActionType.Play;
             IsGameRunning = false;
+            Action = GameActionType.Play;
         }
     }
     
+    partial void OnActionChanged(GameActionType oldValue, GameActionType newValue)
+    {
+        OnPropertyChanged(nameof(ActionLabel));
+    }
+
     [RelayCommand]
     private void StopGame(IGameInstallService installService)
     {
