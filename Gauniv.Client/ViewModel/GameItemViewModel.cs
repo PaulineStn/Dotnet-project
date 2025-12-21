@@ -66,6 +66,12 @@ public partial class GameItemViewModel : ObservableObject
             return;
         }
 
+        if (IsGameRunning)
+        {
+            Action =  GameActionType.Playing;
+            return;
+        }
+
         Action = GameActionType.Play;
     }
     
@@ -76,6 +82,7 @@ public partial class GameItemViewModel : ObservableObject
         GameActionType.Download => "Download",
         GameActionType.Update => "Update",
         GameActionType.Play => "Play",
+        GameActionType.Playing => "Playing",
         _ => ""
     };
 
