@@ -92,14 +92,24 @@ Please respect the team's standards for any future contribution
                         Title="All"
                         WidthRequest="150"/>
             </HorizontalStackLayout>
-            <HorizontalStackLayout Spacing="12">
-                <Label Text="Price:" VerticalOptions="Center"/>
-                <Slider Minimum="{Binding MinPrice}" Maximum="{Binding MaxPrice}"
-                        Value="{Binding PriceMinFilter}" WidthRequest="100"/>
-                <Label Text="{Binding PriceMinFilter, StringFormat='Min: {0} €'}" VerticalOptions="Center"/>
-                <Slider Minimum="{Binding MinPrice}" Maximum="{Binding MaxPrice}"
-                        Value="{Binding PriceMaxFilter}" WidthRequest="100"/>
-                <Label Text="{Binding PriceMaxFilter, StringFormat='Max: {0} €'}" VerticalOptions="Center"/>
+            <HorizontalStackLayout Spacing="12" VerticalOptions="Center">
+                <Label Text="Price:" FontAttributes="Bold" />
+                <Entry Text="{Binding PriceMinFilter, Mode=TwoWay, StringFormat='{0:F2}'}"
+                       Placeholder="Min"
+                       Keyboard="Numeric"
+                       WidthRequest="70"/>
+                <Label Text="to" VerticalOptions="Center"/>
+                <Entry Text="{Binding PriceMaxFilter, Mode=TwoWay, StringFormat='{0:F2}'}"
+                       Placeholder="Max"
+                       Keyboard="Numeric"
+                       WidthRequest="70"/>
+                <Button Text="Apply"
+                        Command="{Binding FilterGamesCommand}"
+                        BackgroundColor="{StaticResource Primary}"
+                        TextColor="White"
+                        CornerRadius="10"
+                        HeightRequest="36"
+                        Padding="10,0"/>
             </HorizontalStackLayout>
         </VerticalStackLayout>
 
