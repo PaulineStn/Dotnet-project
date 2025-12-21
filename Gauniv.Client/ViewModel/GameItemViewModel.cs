@@ -100,6 +100,11 @@ public partial class GameItemViewModel : ObservableObject
         }
     }
     
+    partial void OnActionChanged(GameActionType oldValue, GameActionType newValue)
+    {
+        OnPropertyChanged(nameof(ActionLabel));
+    }
+
     [RelayCommand]
     private void StopGame(IGameInstallService installService)
     {
