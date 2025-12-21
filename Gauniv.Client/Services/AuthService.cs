@@ -83,7 +83,9 @@ namespace Gauniv.Client.Services
     public class AuthService : IAuthService
     {
         private const string AccessTokenKey = "ACCESS_TOKEN";
+        private const string AccessTokenExpiresAtKey = "ACCESS_TOKEN_EXPIRES_AT";
         private readonly ApiClient _apiClient;
+        private static readonly TimeSpan ExpirySafetyMargin = TimeSpan.FromSeconds(30);
 
         public AuthService(ApiClient apiClient)
         {
@@ -110,46 +112,67 @@ namespace Gauniv.Client.Services
         }
 
 
-        public void SetAuthentication(string token)
+        public void SetAuthentication(string token, long expiresIn)
         {
             if (string.IsNullOrEmpty(token))
                 throw new ArgumentNullException(nameof(token));
 
-            Preferences.Set(AccessTokenKey, token);
+            // Calcul de la date d'expiration
+            var expiresAt = DateTimeOffset.UtcNow.AddSeconds(expiresIn);
 
-            // Also set the Bearer token on the generated ApiClient so requests include Authorization
+            // Stockage dans Preferences
+            Preferences.Set(AccessTokenKey, token);
+            Preferences.Set(AccessTokenExpiresAtKey, expiresAt.ToUnixTimeSeconds());
+
+            // Appliquer au client API
             try
             {
                 _apiClient.BearerToken = token;
             }
             catch
             {
-                // ignore if the ApiClient doesn't support BearerToken
+                // ignore si ApiClient ne supporte pas BearerToken
             }
         }
-
+        
         public void Logout()
         {
             Preferences.Remove(AccessTokenKey);
+            Preferences.Remove(AccessTokenExpiresAtKey);
         }
+
         
          public async Task LogoutAsync()
          {
-             Preferences.Remove(AccessTokenKey);
+             Logout();
          }
         
-        public async Task<bool> IsLoggedInAsync()
+         public bool IsLoginExpired() 
         {
-            try
-            {
-                var token = await GetAccessTokenAsync();
-                return !string.IsNullOrEmpty(token);
-            }
-            catch (InvalidOperationException)
-            {
-                return false;
-            }
+            // Pas de token → expiré
+            if (!Preferences.ContainsKey(AccessTokenKey))
+             return true;
+
+            // Pas de date → expiré
+            if (!Preferences.ContainsKey(AccessTokenExpiresAtKey))
+             return true;
+
+            var expiresAtUnix = Preferences.Get(AccessTokenExpiresAtKey, 0L);
+            if (expiresAtUnix <= 0)
+             return true;
+
+            var expiresAt = DateTimeOffset.FromUnixTimeSeconds(expiresAtUnix);
+
+            // Ajouter une marge de sécurité
+            return expiresAt <= DateTimeOffset.UtcNow.Add(ExpirySafetyMargin);
         }
+         
+        public Task<bool> IsLoggedInAsync()
+        {
+            var isLoggedIn = TryGetAccessToken(out _) && !IsLoginExpired();
+            return Task.FromResult(isLoggedIn);
+        }
+
 
         private bool TryGetAccessToken(out string? token)
         {

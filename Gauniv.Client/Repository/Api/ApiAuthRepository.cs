@@ -24,7 +24,7 @@ public class ApiAuthRepository : IAuthRepository
             };
 
             var response = await _api.LoginAsync(null, null, request);
-            _authService.SetAuthentication(response.AccessToken);
+            _authService.SetAuthentication(response.AccessToken, response.ExpiresIn);
             return true;
         }
         catch
