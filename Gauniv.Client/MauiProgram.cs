@@ -53,10 +53,17 @@ namespace Gauniv.Client
                     fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
                 });
             
-            // Ajouter HttpClient pour ApiClient
-            builder.Services.AddHttpClient<ApiClient>(client =>
+            // Ajouter HttpClient pour ApiClient et exposer ApiClient comme singleton
+            builder.Services.AddHttpClient("GaunivApiClient", client =>
             {
                 client.BaseAddress = new Uri("http://localhost:5231");
+            });
+
+            builder.Services.AddSingleton<ApiClient>(sp =>
+            {
+                var factory = sp.GetRequiredService<System.Net.Http.IHttpClientFactory>();
+                var http = factory.CreateClient("GaunivApiClient");
+                return new ApiClient(http);
             });
 
             // Ajouter le ViewModel avec injection

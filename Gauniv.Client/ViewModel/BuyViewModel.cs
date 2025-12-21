@@ -105,8 +105,50 @@ public partial class BuyViewModel : ObservableObject
 		if (SelectedGame == null)
 			return;
 
-		await _userRepository.BuyGameAsync(SelectedGame.Id);
-		SelectedGame = null;
+		if (IsLoading)
+			return;
+
+		IsLoading = true;
+		try
+		{
+			var local_isLoggedIn = await _authService.IsLoggedInAsync();
+			if (!local_isLoggedIn)
+			{
+				await Shell.Current.DisplayAlertAsync("Login required", "Please login to purchase games.", "OK");
+				await Shell.Current.GoToAsync("//login", new Dictionary<string, object>
+				{
+					{ "SelectedGame", SelectedGame }
+				});
+				return;
+			}
+
+			try
+			{
+				await _userRepository.BuyGameAsync(SelectedGame.Id);
+			}
+			catch (Exception ex)
+			{
+				// Detect HTTP 401 Unauthorized
+				if (ex.Message.Contains("401") || ex.Message.Contains("Unauthorized"))
+				{
+					await Shell.Current.DisplayAlertAsync("Login required", "Your session has expired. Please login again to purchase games.", "OK");
+					await Shell.Current.GoToAsync("//login", new Dictionary<string, object>
+					{
+						{ "SelectedGame", SelectedGame }
+					});
+					return;
+				}
+				await Shell.Current.DisplayAlertAsync("Purchase failed", ex.Message, "OK");
+				return;
+			}
+
+			SelectedGame = null;
+		}
+		finally
+		{
+			IsLoading = false;
+		}
+
 		await LoadGamesAsync();
 		await Shell.Current.GoToAsync("//games");
 	}

@@ -128,7 +128,7 @@ namespace Gauniv.Client.ViewModel
             {
                 { "SelectedGame", selectedGame }
             };
-            await Shell.Current.GoToAsync("//buy", navParam);
+            await Shell.Current.GoToAsync(nameof(Buy), navParam);
         }
 
         

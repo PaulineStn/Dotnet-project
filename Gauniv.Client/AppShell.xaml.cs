@@ -39,6 +39,7 @@ namespace Gauniv.Client
             InitializeComponent();
 
             Routing.RegisterRoute(nameof(Register), typeof(Register));
+            Routing.RegisterRoute(nameof(Buy), typeof(Buy));
 
             BindingContext = menuViewModel;
         }

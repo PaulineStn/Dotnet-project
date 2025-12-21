@@ -83,26 +83,30 @@ namespace Gauniv.Client.Services
     public class AuthService : IAuthService
     {
         private const string AccessTokenKey = "ACCESS_TOKEN";
+        private readonly ApiClient _apiClient;
 
-        public bool IsAuthenticated => !string.IsNullOrEmpty(AccessToken);
+        public AuthService(ApiClient apiClient)
+        {
+            _apiClient = apiClient;
+        }
+
+        public bool IsAuthenticated => TryGetAccessToken(out var _);
 
         public string AccessToken
         {
             get
             {
-                var token = Preferences.Get(AccessTokenKey, null);
-                if (token == null)
-                    throw new InvalidOperationException("Access token is not set.");
-                return token;
+                if (TryGetAccessToken(out var token))
+                    return token!;
+                throw new InvalidOperationException("Access token is not set.");
             }
         }
 
         public Task<string> GetAccessTokenAsync()
         {
-            var token = Preferences.Get(AccessTokenKey, null);
-            if (token == null)
-                throw new InvalidOperationException("Access token is not set.");
-            return Task.FromResult(token);
+            if (TryGetAccessToken(out var token))
+                return Task.FromResult(token!);
+            throw new InvalidOperationException("Access token is not set.");
         }
 
 
@@ -112,6 +116,16 @@ namespace Gauniv.Client.Services
                 throw new ArgumentNullException(nameof(token));
 
             Preferences.Set(AccessTokenKey, token);
+
+            // Also set the Bearer token on the generated ApiClient so requests include Authorization
+            try
+            {
+                _apiClient.BearerToken = token;
+            }
+            catch
+            {
+                // ignore if the ApiClient doesn't support BearerToken
+            }
         }
 
         public void Logout()
@@ -135,6 +149,12 @@ namespace Gauniv.Client.Services
             {
                 return false;
             }
+        }
+
+        private bool TryGetAccessToken(out string? token)
+        {
+            token = Preferences.Get(AccessTokenKey, null);
+            return !string.IsNullOrEmpty(token);
         }
     }
 }

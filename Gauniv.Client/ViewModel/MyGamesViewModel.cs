@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 using Gauniv.Client.Models;
+using Gauniv.Client.Pages;
 using Gauniv.Client.Repository;
 using Gauniv.Client.Services;
 using Gauniv.Network;
@@ -90,7 +91,7 @@ namespace Gauniv.Client.ViewModel
                     break;
 
                 case GameActionType.Buy:
-                    await Shell.Current.GoToAsync("//buy", new Dictionary<string, object>
+                    await Shell.Current.GoToAsync(nameof(Buy), new Dictionary<string, object>
                     {
                         { "SelectedGame", game.Game }
                     });
