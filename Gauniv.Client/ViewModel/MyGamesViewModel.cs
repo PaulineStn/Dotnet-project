@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Gauniv.Client.Models;
 using Gauniv.Client.Repository;
 using Gauniv.Client.Services;
+using Gauniv.Network;
 
 namespace Gauniv.Client.ViewModel
 {
@@ -84,13 +85,38 @@ namespace Gauniv.Client.ViewModel
 
             switch (game.Action)
             {
+                case GameActionType.LoginRequired:
+                    await Shell.Current.GoToAsync("//login");
+                    break;
+
                 case GameActionType.Buy:
-                    await _userRepository.BuyGameAsync(game.Game.Id);
+                    await Shell.Current.GoToAsync("//buy", new Dictionary<string, object>
+                    {
+                        { "SelectedGame", game.Game }
+                    });
+                    break;
+
+                case GameActionType.Download:
+                    await _installService.DownloadAsync(game.Game.Id);
                     await LoadGamesAsync();
                     break;
 
-                default:
-                    // MyGames affiche uniquement les jeux à acheter
+                case GameActionType.Update:
+                    await _installService.UpdateAsync(game.Game.Id);
+                    await LoadGamesAsync();
+                    break;
+
+                case GameActionType.Play:
+                    game.SetPlayingState(true);
+                    await _installService.PlayAsync(game.Game.Id, () =>
+                    {
+                        game.SetPlayingState(false);
+                    });
+                    break;
+
+                case GameActionType.Playing:
+                    _installService.StopGame();
+                    game.SetPlayingState(false);
                     break;
             }
         }
