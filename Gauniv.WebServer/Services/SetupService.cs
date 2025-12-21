@@ -228,20 +228,55 @@ namespace Gauniv.WebServer.Services
                     Console.WriteLine($"games:  {games.Count()}");
                     foreach (var game in games)
                     {
-                        var basePath = Path.Combine(_storageOptions.Value.GamesPath, game.Id.ToString());
-                        Directory.CreateDirectory(basePath);
+                        // var basePath = Path.Combine(_storageOptions.Value.GamesPath, game.Id.ToString());
+                        // Directory.CreateDirectory(basePath);
                         
                         // Console.WriteLine($"basePath:  {basePath}");
 
-                        var fileName = $"game_{game.Id}_{game.CurrentVersion}.bin";
-                        var filePath = Path.Combine(basePath, fileName);
-
-                        await File.WriteAllBytesAsync(
-                            filePath,
-                            Encoding.UTF8.GetBytes($"FAKE_BINARY_{game.Name.ToUpperInvariant()}")
+                        // var fileName = $"game_{game.Id}_{game.CurrentVersion}.bin";
+                        // var filePath = Path.Combine(basePath, fileName);
+                        //
+                        // await File.WriteAllBytesAsync(
+                        //     filePath,
+                        //     Encoding.UTF8.GetBytes($"FAKE_BINARY_{game.Name.ToUpperInvariant()}")
+                        // );
+                        // game.FilePath = filePath;
+                        
+                        // Dossier final du jeu
+                        var gameFolder = Path.Combine(
+                            _storageOptions.Value.GamesPath,
+                            game.Id.ToString()
                         );
 
-                        game.FilePath = filePath;
+                        Directory.CreateDirectory(gameFolder);
+                        
+                        // FICHIER SOURCE (Resources du projet)
+                        var sourceFilePath = Path.Combine(
+                            Directory.GetCurrentDirectory(),
+                            "Resources",
+                            "Games",
+                            "rufus.exe"
+                        );
+                        
+                        if (!File.Exists(sourceFilePath))
+                            throw new FileNotFoundException(
+                                "Fichier du jeu introuvable dans Resources",
+                                sourceFilePath
+                            );
+
+                        // Nom versionné
+                        var fileName = $"game_{game.Id}_{game.CurrentVersion}.exe";
+                        var destinationPath = Path.Combine(gameFolder, fileName);
+
+                        // Copier uniquement si nécessaire
+                        if (!File.Exists(destinationPath))
+                        {
+                            File.Copy(sourceFilePath, destinationPath);
+                        }
+
+                        // Référencer le fichier
+                        game.FilePath = destinationPath;
+                        
                     }
                     // Sauvegarder FilePath
                     await applicationDbContext.SaveChangesAsync();
