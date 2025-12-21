@@ -249,7 +249,6 @@ namespace Gauniv.Client.ViewModel
         {
             _installService.StopGame();
             game.SetPlayingState(false);
-
         }
 
 

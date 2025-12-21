@@ -143,9 +143,9 @@ public class GameInstallService : IGameInstallService
             throw new FileNotFoundException("Fichier du jeu introuvable", exePath);
 
         _gameCts = new CancellationTokenSource();
-        var token = _gameCts.Token;
+        // var token = _gameCts.Token;
 
-        _gameTask = Task.Run(() =>
+        _gameTask = Task.Run(async () =>
         {
             var startInfo = new ProcessStartInfo
             {
@@ -168,7 +168,7 @@ public class GameInstallService : IGameInstallService
             {
                 while (!_gameCts.Token.IsCancellationRequested && !_runningGame.HasExited)
                 {
-                    Task.Delay(500, _gameCts.Token).Wait();
+                    await Task.Delay(500, _gameCts.Token);
                 }
 
                 if (!_runningGame.HasExited)
