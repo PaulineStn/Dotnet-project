@@ -188,7 +188,7 @@ public class GameInstallService : IGameInstallService
             {
                 _runningGame = null;
                 _gameTask = null;
-                _gameCts.Dispose();
+                _gameCts?.Dispose();
                 _gameCts = null;
                 onExited?.Invoke();
                 Console.WriteLine("🛑 Jeu terminé");
