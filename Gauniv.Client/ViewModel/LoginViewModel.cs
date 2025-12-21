@@ -87,7 +87,9 @@ namespace Gauniv.Client.ViewModel
                 if (isAuthenticated)
                 {
                     _menuViewModel.IsUserConnected = true;
-                    // await Shell.Current.GoToAsync("//buy");
+                    // Force le Shell à rafraîchir le menu
+                    if (Shell.Current is AppShell appShell)
+                        appShell.RefreshMenu();
                     await NavigateToIndexGames();
                 }
                 else

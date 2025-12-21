@@ -43,5 +43,14 @@ namespace Gauniv.Client
 
             BindingContext = menuViewModel;
         }
+
+        // Ajoutez cette méthode pour rafraîchir le BindingContext si besoin
+        public void RefreshMenu()
+        {
+            // Force le Shell à réévaluer les bindings
+            var ctx = BindingContext;
+            BindingContext = null;
+            BindingContext = ctx;
+        }
     }
 }

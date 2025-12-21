@@ -66,7 +66,8 @@ namespace Gauniv.Client.ViewModel
                         local_isLoggedIn,
                         _installService);
 
-                    if (local_item.Action == GameActionType.Play)
+                    // Afficher tous les jeux achetés, peu importe l'action
+                    if (local_item.IsOwned)
                     {
                         GamesToBuy.Add(local_item);
                     }
