@@ -72,6 +72,10 @@ namespace Gauniv.Client
             builder.Services.AddSingleton<IAuthService, AuthService>();
             builder.Services.AddTransient<LoginViewModel>();
             builder.Services.AddTransient<Login>();
+
+            builder.Services.AddTransient<RegisterViewModel>();
+            builder.Services.AddTransient<Register>();
+
             builder.Services.AddSingleton<MenuViewModel>();
             builder.Services.AddSingleton<AppShell>();
 #if DEBUG

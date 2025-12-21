@@ -32,6 +32,7 @@ using CommunityToolkit.Mvvm.Input;
 using Gauniv.Client.Repository;
 using Gauniv.Network;
 using Index = Gauniv.Client.Pages.Index;
+using Gauniv.Client.Pages;
 
 namespace Gauniv.Client.ViewModel
 {
@@ -43,16 +44,16 @@ namespace Gauniv.Client.ViewModel
         // private readonly IServiceProvider _serviceProvider;
         
         [ObservableProperty]
-        private string email;
+        private string email = string.Empty;
 
         [ObservableProperty]
-        private string password;
+        private string password = string.Empty;
 
         [ObservableProperty]
-        private GameDto selectedGame;
+        private GameDto? selectedGame;
 
         [ObservableProperty]
-        private string errorMessage;
+        private string errorMessage = string.Empty;
 
         [ObservableProperty]
         private bool hasError;
@@ -107,9 +108,9 @@ namespace Gauniv.Client.ViewModel
         }
 
         [RelayCommand]
-        private void Register()
+        private async Task Register()
         {
-            Console.WriteLine("Navigation vers inscription");
+            await Shell.Current.GoToAsync(nameof(Register));
         }
         
         private async Task NavigateToIndexGames()

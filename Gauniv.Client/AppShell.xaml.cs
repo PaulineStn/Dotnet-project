@@ -28,6 +28,7 @@
 #endregion
 
 using Gauniv.Client.ViewModel;
+using Gauniv.Client.Pages;
 
 namespace Gauniv.Client
 {
@@ -36,6 +37,8 @@ namespace Gauniv.Client
         public AppShell(MenuViewModel menuViewModel)
         {
             InitializeComponent();
+
+            Routing.RegisterRoute(nameof(Register), typeof(Register));
 
             BindingContext = menuViewModel;
         }

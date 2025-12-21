@@ -32,4 +32,23 @@ public class ApiAuthRepository : IAuthRepository
             return false;
         }
     }
+
+    public async Task<bool> RegisterAsync(string email, string password)
+    {
+        try
+        {
+            var request = new RegisterRequest
+            {
+                Email = email,
+                Password = password
+            };
+
+            await _api.RegisterAsync(request);
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
+    }
 }
