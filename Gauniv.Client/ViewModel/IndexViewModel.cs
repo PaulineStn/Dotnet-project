@@ -114,70 +114,29 @@ namespace Gauniv.Client.ViewModel
             }
         }
 
-        partial void OnSelectedCategoryChanged(string value)
+        [RelayCommand]
+        public void FilterGames()
         {
-            FilterGames();
-        }
+            double min = Math.Min(PriceMinFilter, PriceMaxFilter);
+            double max = Math.Max(PriceMinFilter, PriceMaxFilter);
 
-        partial void OnPriceMinFilterChanged(double value)
-        {
-            FilterGames();
-        }
-
-        partial void OnPriceMaxFilterChanged(double value)
-        {
-            FilterGames();
-        }
-
-        private void FilterGames()
-        {
             var filtered = Games.Where(g =>
                 (string.IsNullOrEmpty(SelectedCategory) ||
                     (g.Game.Categories != null && g.Game.Categories.Any(c => c.Name == SelectedCategory))) &&
-                (double)g.Game.Price >= PriceMinFilter &&
-                (double)g.Game.Price <= PriceMaxFilter
+                (double)g.Game.Price >= min &&
+                (double)g.Game.Price <= max
             ).ToList();
 
             FilteredGames.Clear();
             foreach (var game in filtered)
                 FilteredGames.Add(game);
         }
-        
-        // [RelayCommand]
-        // private void SelectGameCommand(GameDto game)
-        // {
-        //     if (game == null)
-        //         return;
-        //
-        //     Console.WriteLine($"Game sélectionné : {game.Name}");
-        // }
-        //
-        // [RelayCommand]
-        // private async Task BuyGame(GameDto game)
-        // {
-        //     if (game == null)
-        //         return;
-        //
-        //     // Vérifier si l'utilisateur est connecté
-        //     if (!_authService.IsAuthenticated)
-        //     {
-        //         var navigationParameter = new Dictionary<string, object>
-        //         {
-        //             { "SelectedGame", game }
-        //         };
-        //         await Shell.Current.GoToAsync("//login", navigationParameter);
-        //     }
-        //     else
-        //     {
-        //         // Rediriger directement vers Buy
-        //         var navigationParameter = new Dictionary<string, object>
-        //         {
-        //             { "SelectedGame", game }
-        //         };
-        //         await Shell.Current.GoToAsync("//buy", navigationParameter);
-        //     }
-        // }
-        
+
+        partial void OnSelectedCategoryChanged(string value)
+        {
+            FilterGames();
+        }
+
         [RelayCommand]
         private async Task NavigateToLoginAsync(GameDto selectedGame)
         {

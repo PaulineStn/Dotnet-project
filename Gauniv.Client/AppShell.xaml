@@ -19,11 +19,11 @@
         <ShellContent ContentTemplate="{DataTemplate local:Index}" />
     </FlyoutItem>
 
-    <FlyoutItem Title="Profile"
+    <!--<FlyoutItem Title="Profile"
                 Route="profile"
                 IsVisible="{Binding IsUserConnected}">
         <ShellContent ContentTemplate="{DataTemplate local:Profile}" />
-    </FlyoutItem>
+    </FlyoutItem>-->
     
     <FlyoutItem Title="Login"
                 Route="login">
