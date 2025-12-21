@@ -69,6 +69,17 @@ Tous les comptes pourront accéder à la liste de jeux disponibles ainsi qu'aux 
 - **Docs API** : Swagger
 - **Client** : MAUI
 
+## Réalisation
+
+- Ajout de **filtres par catégorie** dans la liste des jeux.
+- Création d’une **page de statistiques** affichant :
+  - le nombre total de jeux,
+  - le nombre de jeux par catégorie,
+  - le nombre moyen de jeux joués par compte.
+- Mise en place d’un **stockage des jeux hors de la base de données** (en locale dans un dossier ignoré par git) afin de gérer des fichiers de grande taille (plusieurs Go).
+- Implémentation du **streaming des fichiers** pour éviter de charger les jeux entièrement en mémoire et réduire l’empreinte mémoire du serveur.
+
+
 ## Auteurs
 - Steichen Pauline
 - Mahussi Jeff Datongnon
