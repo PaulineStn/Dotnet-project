@@ -139,7 +139,7 @@ Please respect the team's standards for any future contribution
 
                                 <Button Text="Stop"
                                         IsVisible="{Binding IsGameRunning}"
-                                        Command="{Binding BindingContext.GameActionCommand, Source={x:Reference Page}}"
+                                        Command="{Binding Source={RelativeSource AncestorType={x:Type vm:MyGamesViewModel}}, Path=StopGameCommand}"
                                         CommandParameter="{Binding .}"
                                         FontSize="13"
                                         BackgroundColor="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}"
