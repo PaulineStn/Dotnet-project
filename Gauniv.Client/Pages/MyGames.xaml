@@ -35,6 +35,30 @@ Please respect the team's standards for any future contribution
              x:Class="Gauniv.Client.Pages.MyGames"
              Title="MyGames"
              x:DataType="vm:MyGamesViewModel"
-             BindingContext="{vm:MyGamesViewModel}">
-    <Label Text="List de mes jeux" />
+             x:Name="Page">
+
+    <Grid RowDefinitions="Auto,*" Padding="16">
+        <ActivityIndicator
+            Grid.Row="0"
+            IsVisible="{Binding IsLoading}"
+            IsRunning="{Binding IsLoading}" />
+
+        <CollectionView Grid.Row="1" ItemsSource="{Binding GamesToBuy}">
+        <CollectionView.ItemTemplate>
+            <DataTemplate x:DataType="vm:GameItemViewModel">
+                <Border Padding="12">
+                    <VerticalStackLayout Spacing="6">
+                        <Label Text="{Binding Game.Name}" />
+                        <Label Text="{Binding Game.Price, StringFormat='{}{0} €'}" />
+                        <Button
+                            Text="{Binding ActionLabel}"
+                            Command="{Binding BindingContext.GameActionCommand, Source={x:Reference Page}}"
+                            CommandParameter="{Binding .}" />
+                    </VerticalStackLayout>
+                </Border>
+            </DataTemplate>
+        </CollectionView.ItemTemplate>
+    </CollectionView>
+
+    </Grid>
 </ContentPage>

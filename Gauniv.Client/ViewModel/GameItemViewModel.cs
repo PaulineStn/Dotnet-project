@@ -1,8 +1,10 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Gauniv.Client.Models;
-using Gauniv.Client.ViewModel;
+using Gauniv.Client.Services;
 using Gauniv.Network;
+
+namespace Gauniv.Client.ViewModel;
 
 public partial class GameItemViewModel : ObservableObject
 {

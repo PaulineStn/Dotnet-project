@@ -33,7 +33,6 @@ Please respect the team's standards for any future contribution
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:network="clr-namespace:Gauniv.Network;assembly=Gauniv.Network"
-             xmlns:global="clr-namespace:"
              x:Class="Gauniv.Client.Pages.Index"
              Title="Index"
              x:DataType="vm:IndexViewModel"
@@ -82,7 +81,7 @@ Please respect the team's standards for any future contribution
             </CollectionView.ItemsLayout>
             
             <CollectionView.ItemTemplate>
-                <DataTemplate x:DataType="global:GameItemViewModel">
+                <DataTemplate x:DataType="vm:GameItemViewModel">
                     <Frame Padding="0" 
                            CornerRadius="20" 
                            HasShadow="True"
