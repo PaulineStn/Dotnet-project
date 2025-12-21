@@ -32,46 +32,81 @@ Please respect the team's standards for any future contribution
              xmlns:vm="clr-namespace:Gauniv.Client.ViewModel"
              x:Class="Gauniv.Client.Pages.Profile"
              Title="Profil"
-             BindingContext="{vm:ProfileViewModel}">
+             x:DataType="vm:ProfileViewModel"
+             BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray950}}">
+
     <ScrollView>
-        <VerticalStackLayout Padding="20" Spacing="15">
-            
-            <Label Text="Profil Utilisateur" 
-                   FontSize="24" 
-                   FontAttributes="Bold"
-                   HorizontalOptions="Center"
-                   Margin="0,0,0,20"/>
-            
-            <!-- Nom d'utilisateur -->
-            <Frame BorderColor="Gray" CornerRadius="5" Padding="10">
-                <VerticalStackLayout Spacing="10">
-                    <Label Text="Nom d'utilisateur" FontAttributes="Bold"/>
-                    <Entry Text="{Binding Username}" 
-                           Placeholder="Entrez votre nom d'utilisateur"/>
-                    <Button Text="Modifier le nom d'utilisateur" 
-                            Command="{Binding UpdateUsernameCommand}"/>
+        <VerticalStackLayout Padding="24" Spacing="24">
+
+            <!-- Header -->
+            <Border Padding="20,28,20,18">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="0,0,28,28" />
+                </Border.StrokeShape>
+                <Border.Background>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                        <GradientStop Color="{StaticResource Primary}" Offset="0.0" />
+                        <GradientStop Color="{StaticResource Secondary}" Offset="1.0" />
+                    </LinearGradientBrush>
+                </Border.Background>
+                <Border.Shadow>
+                    <Shadow Brush="Black" Offset="0,6" Radius="16" Opacity="0.25" />
+                </Border.Shadow>
+                <VerticalStackLayout Spacing="6">
+                    <Label Text="Mon Profil"
+                           FontSize="28"
+                           FontAttributes="Bold"
+                           TextColor="White" />
+                    <Label Text="Voir et modifier vos informations"
+                           FontSize="13"
+                           TextColor="White"
+                           Opacity="0.85" />
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Affichage des infos utilisateur -->
+            <Frame CornerRadius="18" Padding="18"
+                   BackgroundColor="{AppThemeBinding Light=White, Dark={StaticResource Gray900}}"
+                   HasShadow="True">
+                <VerticalStackLayout Spacing="18">
+                    <HorizontalStackLayout Spacing="12" VerticalOptions="Center">
+                        <Image Source="dotnet_bot.png" HeightRequest="64" WidthRequest="64" />
+                        <VerticalStackLayout>
+                            <Label Text="{Binding Username}" FontSize="20" FontAttributes="Bold" />
+                            <Label Text="{Binding Email}" FontSize="14" TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray400}}" />
+                        </VerticalStackLayout>
+                    </HorizontalStackLayout>
+                    <Label Text="Dossier de sauvegarde :" FontAttributes="Bold" />
+                    <Label Text="{Binding SaveFolder}" FontSize="13" LineBreakMode="WordWrap" />
+                    <Button Text="Modifier le profil"
+                            BackgroundColor="{StaticResource Primary}"
+                            TextColor="White"
+                            CornerRadius="14"
+                            FontAttributes="Bold"
+                            HeightRequest="44" />
                 </VerticalStackLayout>
             </Frame>
-            
-            <!-- Mot de passe -->
-            <Frame BorderColor="Gray" CornerRadius="5" Padding="10">
-                <VerticalStackLayout Spacing="10">
-                    <Label Text="Mot de passe" FontAttributes="Bold"/>
-                    <Entry Text="{Binding CurrentPassword}" 
-                           Placeholder="Mot de passe actuel"
-                           IsPassword="True"/>
-                    <Entry Text="{Binding NewPassword}" 
-                           Placeholder="Nouveau mot de passe"
-                           IsPassword="True"/>
-                    <Entry Text="{Binding ConfirmPassword}" 
-                           Placeholder="Confirmer le mot de passe"
-                           IsPassword="True"/>
-                    <Button Text="Modifier le mot de passe" 
-                            Command="{Binding UpdatePasswordCommand}"/>
+
+            <!-- Section modification (affichée après clic sur Modifier, ici toujours visible pour la maquette) -->
+            <Frame CornerRadius="18" Padding="18"
+                   BackgroundColor="{AppThemeBinding Light=White, Dark={StaticResource Gray900}}"
+                   HasShadow="True">
+                <VerticalStackLayout Spacing="16">
+                    <Label Text="Modifier mes informations" FontSize="18" FontAttributes="Bold" />
+                    <Entry Text="{Binding Username}" Placeholder="Nom d'utilisateur" />
+                    <Entry Text="{Binding Email}" Placeholder="Email" Keyboard="Email" />
+                    <Entry Text="{Binding CurrentPassword}" Placeholder="Mot de passe actuel" IsPassword="True" />
+                    <Entry Text="{Binding NewPassword}" Placeholder="Nouveau mot de passe" IsPassword="True" />
+                    <Entry Text="{Binding ConfirmPassword}" Placeholder="Confirmer le mot de passe" IsPassword="True" />
+                    <Button Text="Enregistrer les modifications"
+                            BackgroundColor="{StaticResource Primary}"
+                            TextColor="White"
+                            CornerRadius="14"
+                            FontAttributes="Bold"
+                            HeightRequest="44" />
                 </VerticalStackLayout>
             </Frame>
-            
-            
+
         </VerticalStackLayout>
     </ScrollView>
 </ContentPage>
