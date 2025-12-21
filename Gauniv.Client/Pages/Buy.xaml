@@ -13,17 +13,60 @@
             IsVisible="{Binding IsLoading}"
             IsRunning="{Binding IsLoading}" />
 
-        <CollectionView Grid.Row="1" ItemsSource="{Binding GamesToBuy}">
+        <!-- Confirmation d'achat (quand on vient de Index) -->
+        <Border Grid.Row="1"
+                IsVisible="{Binding HasSelectedGame}"
+                Padding="16"
+                BackgroundColor="{AppThemeBinding Light=White, Dark={StaticResource Gray900}}">
+            <Border.StrokeShape>
+                <RoundRectangle CornerRadius="20" />
+            </Border.StrokeShape>
+            <VerticalStackLayout Spacing="10">
+                <Label Text="Confirm purchase"
+                       FontSize="18"
+                       FontAttributes="Bold"
+                       TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark=White}" />
+
+                <Label Text="{Binding SelectedGame.Name}"
+                       FontSize="16"
+                       FontAttributes="Bold"
+                       LineBreakMode="TailTruncation" />
+
+                <Label Text="{Binding SelectedGame.Price, StringFormat='Price: {0} €'}"
+                       FontSize="14"
+                       TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray400}}" />
+
+                <Button Text="Confirm"
+                        Command="{Binding ConfirmPurchaseCommand}"
+                        BackgroundColor="{StaticResource Primary}"
+                        TextColor="White"
+                        CornerRadius="14"
+                        HeightRequest="44" />
+            </VerticalStackLayout>
+        </Border>
+
+        <!-- Liste des jeux à acheter (si on ouvre Buy depuis le menu) -->
+        <CollectionView Grid.Row="1"
+                        IsVisible="{Binding HasNoSelectedGame}"
+                        ItemsSource="{Binding GamesToBuy}">
             <CollectionView.ItemTemplate>
                 <DataTemplate x:DataType="vm:GameItemViewModel">
-                    <Border Padding="12">
+                    <Border Padding="12"
+                            BackgroundColor="{AppThemeBinding Light=White, Dark={StaticResource Gray900}}">
+                        <Border.StrokeShape>
+                            <RoundRectangle CornerRadius="16" />
+                        </Border.StrokeShape>
                         <VerticalStackLayout Spacing="6">
-                            <Label Text="{Binding Game.Name}" />
+                            <Label Text="{Binding Game.Name}" FontAttributes="Bold" />
                             <Label Text="{Binding Game.Price, StringFormat='{}{0} €'}" />
                             <Button
-                                Text="{Binding ActionLabel}"
-                                Command="{Binding BindingContext.GameActionCommand, Source={x:Reference Page}}"
-                                CommandParameter="{Binding .}" />
+                                Text="Buy"
+                                Command="{Binding BindingContext.SelectForConfirmationCommand, Source={x:Reference Page}}"
+                                CommandParameter="{Binding .}"
+                                BackgroundColor="{StaticResource Primary}"
+                                TextColor="White"
+                                CornerRadius="14"
+                                HeightRequest="40" />
                         </VerticalStackLayout>
                     </Border>
                 </DataTemplate>

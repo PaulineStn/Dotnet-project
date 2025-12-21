@@ -3,11 +3,13 @@ using CommunityToolkit.Mvvm.Input;
 using Gauniv.Client.Models;
 using Gauniv.Client.Repository;
 using Gauniv.Client.Services;
+using Gauniv.Network;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 
 namespace Gauniv.Client.ViewModel;
 
+[QueryProperty(nameof(SelectedGame), "SelectedGame")]
 public partial class BuyViewModel : ObservableObject
 {
 	[ObservableProperty]
@@ -15,6 +17,9 @@ public partial class BuyViewModel : ObservableObject
 
 	[ObservableProperty]
 	private bool isLoading;
+
+	[ObservableProperty]
+	private GameDto? selectedGame;
 
 	private readonly IGameRepository _gameRepository;
 	private readonly IUserRepository _userRepository;
@@ -31,6 +36,15 @@ public partial class BuyViewModel : ObservableObject
 		_userRepository = userRepository;
 		_authService = authService;
 		_installService = installService;
+	}
+
+	public bool HasSelectedGame => SelectedGame != null;
+	public bool HasNoSelectedGame => SelectedGame == null;
+
+	partial void OnSelectedGameChanged(GameDto? value)
+	{
+		OnPropertyChanged(nameof(HasSelectedGame));
+		OnPropertyChanged(nameof(HasNoSelectedGame));
 	}
 
 	[RelayCommand]
@@ -77,6 +91,27 @@ public partial class BuyViewModel : ObservableObject
 	}
 
 	[RelayCommand]
+	private void SelectForConfirmation(GameItemViewModel game)
+	{
+		if (game == null)
+			return;
+
+		SelectedGame = game.Game;
+	}
+
+	[RelayCommand]
+	private async Task ConfirmPurchaseAsync()
+	{
+		if (SelectedGame == null)
+			return;
+
+		await _userRepository.BuyGameAsync(SelectedGame.Id);
+		SelectedGame = null;
+		await LoadGamesAsync();
+		await Shell.Current.GoToAsync("//games");
+	}
+
+	[RelayCommand]
 	private async Task GameActionAsync(GameItemViewModel game)
 	{
 		if (game == null)
@@ -84,8 +119,7 @@ public partial class BuyViewModel : ObservableObject
 
 		if (game.Action == GameActionType.Buy)
 		{
-			await _userRepository.BuyGameAsync(game.Game.Id);
-			await LoadGamesAsync();
+			SelectedGame = game.Game;
 		}
 	}
 }

@@ -121,6 +121,16 @@ namespace Gauniv.Client.ViewModel
             await Shell.Current.GoToAsync("//login", navParam);
         }
 
+        [RelayCommand]
+        private async Task NavigateToBuyAsync(GameDto selectedGame)
+        {
+            var navParam = new Dictionary<string, object>
+            {
+                { "SelectedGame", selectedGame }
+            };
+            await Shell.Current.GoToAsync("//buy", navParam);
+        }
+
         
         [RelayCommand]
         private async Task GameActionAsync(GameItemViewModel game)
@@ -135,8 +145,7 @@ namespace Gauniv.Client.ViewModel
                     break;
 
                 case GameActionType.Buy:
-                    await _userRepository.BuyGameAsync(game.Game.Id);
-                    await LoadGamesAsync();
+                    await NavigateToBuyAsync(game.Game);
                     break;
 
                 case GameActionType.Download:

@@ -42,11 +42,6 @@
         <ShellContent ContentTemplate="{DataTemplate local:Login}" />
     </FlyoutItem>
     
-    <FlyoutItem Title="Buy"
-                Route="buy"
-                IsVisible="{Binding IsUserConnected}">
-        <ShellContent ContentTemplate="{DataTemplate local:Buy}" />
-    </FlyoutItem>
     <FlyoutItem Title="My Games"
                 Route="mygames">
         <FlyoutItem.Style>
