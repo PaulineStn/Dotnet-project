@@ -72,7 +72,7 @@ namespace Gauniv.Client.ViewModel
         {
             if (string.IsNullOrWhiteSpace(Email) || string.IsNullOrWhiteSpace(Password))
             {
-                ErrorMessage = "Veuillez remplir tous les champs";
+                ErrorMessage = "Please fill in all fields.";
                 HasError = true;
                 return;
             }
@@ -92,13 +92,13 @@ namespace Gauniv.Client.ViewModel
                 }
                 else
                 {
-                    ErrorMessage = "Email ou mot de passe incorrect";
+                    ErrorMessage = "Incorrect email or password.";
                     HasError = true;
                 }
             }
             catch (Exception ex)
             {
-                ErrorMessage = "Erreur de connexion : " + ex;
+                ErrorMessage = "Login error: " + ex;
                 HasError = true;
             }
             finally
