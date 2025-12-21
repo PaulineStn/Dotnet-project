@@ -156,7 +156,7 @@ Please respect the team's standards for any future contribution
 
                                     <Button
                                         Text="Stop"
-                                        Command="{Binding Source={RelativeSource AncestorType={x:Type vm:IndexViewModel}}, Path=GameActionCommand}"
+                                        Command="{Binding Source={RelativeSource AncestorType={x:Type vm:IndexViewModel}}, Path=StopGameCommand}"
                                         CommandParameter="{Binding .}"
                                         IsVisible="{Binding IsGameRunning}"
                                         FontSize="13"

@@ -124,8 +124,6 @@ public class GameInstallService : IGameInstallService
             throw new InvalidOperationException("Jeu non installé");
 
         await DownloadAsync(gameId);
-        _installedGames[gameId] = DateTime.UtcNow.Ticks.ToString();
-        SaveInstalledGames();
     }
 
     private string GetFileName(int gameId)

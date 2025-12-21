@@ -177,5 +177,14 @@ namespace Gauniv.Client.ViewModel
             }
         }
 
+        [RelayCommand]
+        private async Task StopGameAsync(GameItemViewModel game)
+        {
+            _installService.StopGame();
+            game.SetPlayingState(false);
+
+        }
+
+
     }
 }
