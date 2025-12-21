@@ -35,11 +35,11 @@ namespace Gauniv.Client.ViewModel
 {
     internal class ProfileViewModel : INotifyPropertyChanged
     {
-        private string global_username;
-        private string global_currentPassword;
-        private string global_newPassword;
-        private string global_confirmPassword;
-        private string global_saveFolder;
+        private string global_username = string.Empty;
+        private string global_currentPassword = string.Empty;
+        private string global_newPassword = string.Empty;
+        private string global_confirmPassword = string.Empty;
+        private string global_saveFolder = string.Empty;
 
         public string Username
         {
@@ -95,11 +95,11 @@ namespace Gauniv.Client.ViewModel
             // Logique de sélection du dossier
         }
 
-        public event PropertyChangedEventHandler PropertyChanged;
+        public event PropertyChangedEventHandler? PropertyChanged;
 
-        protected void OnPropertyChanged([CallerMemberName] string propertyName = null)
+        protected void OnPropertyChanged([CallerMemberName] string propertyName = "")
         {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName!));
         }
     }
 }

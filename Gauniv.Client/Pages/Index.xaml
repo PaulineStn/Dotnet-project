@@ -39,7 +39,7 @@ Please respect the team's standards for any future contribution
              BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray950}}">
     
     
-    <Grid RowDefinitions="Auto,*" Padding="0">
+    <Grid RowDefinitions="Auto,Auto,*" Padding="0">
         <!-- En-tête -->
         <Border Grid.Row="0" Padding="20,28,20,18">
             <Border.StrokeShape>
@@ -83,9 +83,29 @@ Please respect the team's standards for any future contribution
             </Grid>
         </Border>
 
+        <!-- Filtres -->
+        <VerticalStackLayout Grid.Row="1" Padding="16,8,16,0" Spacing="10">
+            <HorizontalStackLayout Spacing="12">
+                <Label Text="Category:" VerticalOptions="Center"/>
+                <Picker ItemsSource="{Binding Categories}"
+                        SelectedItem="{Binding SelectedCategory}"
+                        Title="All"
+                        WidthRequest="150"/>
+            </HorizontalStackLayout>
+            <HorizontalStackLayout Spacing="12">
+                <Label Text="Price:" VerticalOptions="Center"/>
+                <Slider Minimum="{Binding MinPrice}" Maximum="{Binding MaxPrice}"
+                        Value="{Binding PriceMinFilter}" WidthRequest="100"/>
+                <Label Text="{Binding PriceMinFilter, StringFormat='Min: {0} €'}" VerticalOptions="Center"/>
+                <Slider Minimum="{Binding MinPrice}" Maximum="{Binding MaxPrice}"
+                        Value="{Binding PriceMaxFilter}" WidthRequest="100"/>
+                <Label Text="{Binding PriceMaxFilter, StringFormat='Max: {0} €'}" VerticalOptions="Center"/>
+            </HorizontalStackLayout>
+        </VerticalStackLayout>
+
         <!-- Liste des jeux -->
-        <CollectionView Grid.Row="1"
-                        ItemsSource="{Binding Games}"
+        <CollectionView Grid.Row="2"
+                        ItemsSource="{Binding FilteredGames}"
                         Margin="16,14"
                         SelectionMode="None"
                         HorizontalScrollBarVisibility="Never">

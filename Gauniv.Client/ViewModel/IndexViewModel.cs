@@ -3,7 +3,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Gauniv.Client.Pages;
 using Gauniv.Client.Repository;
-using Gauniv.Network;
+using Gauniv.Network; // For CategoryDto
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using Gauniv.Client.Models;
@@ -16,7 +16,28 @@ namespace Gauniv.Client.ViewModel
         private ObservableCollection<GameItemViewModel> games = new();
 
         [ObservableProperty]
+        private ObservableCollection<GameItemViewModel> filteredGames = new();
+
+        [ObservableProperty]
         private bool isLoading;
+
+        [ObservableProperty]
+        private ObservableCollection<string> categories = new();
+
+        [ObservableProperty]
+        private string? selectedCategory = null;
+
+        [ObservableProperty]
+        private double priceMinFilter;
+
+        [ObservableProperty]
+        private double priceMaxFilter;
+
+        private double minPrice;
+        private double maxPrice;
+
+        public double MinPrice => minPrice;
+        public double MaxPrice => maxPrice;
 
         private readonly IGameRepository _gameRepository;
         private readonly IUserRepository _userRepository;
@@ -69,11 +90,57 @@ namespace Gauniv.Client.ViewModel
                         _installService
                     ));
                 }
+
+                // Extract all unique category names from all games
+                var allCategories = local_games
+                    .SelectMany(g => g.Categories ?? Enumerable.Empty<CategoryDto>())
+                    .Select(c => c.Name)
+                    .Distinct()
+                    .OrderBy(c => c)
+                    .ToList();
+                Categories = new ObservableCollection<string>(allCategories);
+                SelectedCategory = null;
+
+                minPrice = local_games.Any() ? (double)local_games.Min(g => g.Price) : 0;
+                maxPrice = local_games.Any() ? (double)local_games.Max(g => g.Price) : 0;
+                PriceMinFilter = minPrice;
+                PriceMaxFilter = maxPrice;
+
+                FilterGames();
             }
             finally
             {
                 IsLoading = false;
             }
+        }
+
+        partial void OnSelectedCategoryChanged(string value)
+        {
+            FilterGames();
+        }
+
+        partial void OnPriceMinFilterChanged(double value)
+        {
+            FilterGames();
+        }
+
+        partial void OnPriceMaxFilterChanged(double value)
+        {
+            FilterGames();
+        }
+
+        private void FilterGames()
+        {
+            var filtered = Games.Where(g =>
+                (string.IsNullOrEmpty(SelectedCategory) ||
+                    (g.Game.Categories != null && g.Game.Categories.Any(c => c.Name == SelectedCategory))) &&
+                (double)g.Game.Price >= PriceMinFilter &&
+                (double)g.Game.Price <= PriceMaxFilter
+            ).ToList();
+
+            FilteredGames.Clear();
+            foreach (var game in filtered)
+                FilteredGames.Add(game);
         }
         
         // [RelayCommand]

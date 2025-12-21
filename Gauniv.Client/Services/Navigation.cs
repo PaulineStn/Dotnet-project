@@ -42,12 +42,18 @@ namespace Gauniv.Client.Services
     public partial class NavigationService() : ObservableObject
     {
         public static NavigationService Instance { get; private set; } = new NavigationService();
-        public bool CanGoBack => App.Current?.MainPage?.Navigation.NavigationStack.Count > 0;
-
+        
         [ObservableProperty]
-        private ContentPage currentPage;
+        private ContentPage? currentPage = null;
 
-        public async void GoBack() => await App.Current.MainPage.Navigation.PopAsync();
+        public bool CanGoBack => Application.Current?.Windows.FirstOrDefault()?.Page?.Navigation.NavigationStack.Count > 0;
+
+        public async void GoBack()
+        {
+            var nav = Application.Current?.Windows.FirstOrDefault()?.Page?.Navigation;
+            if (nav != null)
+                await nav.PopAsync();
+        }
 
         /// <summary>
         /// Permet de changer la page afficher par la <see cref="Frame"/>
