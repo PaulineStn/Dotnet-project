@@ -68,6 +68,7 @@ namespace Gauniv.Client
             builder.Services.AddTransient<LoginViewModel>();
             builder.Services.AddTransient<Index>();
             builder.Services.AddTransient<BuyViewModel>();
+            builder.Services.AddTransient<Buy>();
             builder.Services.AddSingleton<IAuthService, AuthService>();
             builder.Services.AddTransient<LoginViewModel>();
             builder.Services.AddTransient<Login>();
