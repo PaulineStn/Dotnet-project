@@ -20,26 +20,41 @@
     </FlyoutItem>
 
     <FlyoutItem Title="Profile"
-                Route="profile">
+                Route="profile"
+                IsVisible="{Binding IsUserConnected}">
         <ShellContent ContentTemplate="{DataTemplate local:Profile}" />
     </FlyoutItem>
     
     <FlyoutItem Title="Login"
                 Route="login">
+        <FlyoutItem.Style>
+            <Style TargetType="FlyoutItem">
+                <Setter Property="IsVisible" Value="True" />
+                <Style.Triggers>
+                    <DataTrigger TargetType="FlyoutItem"
+                                 Binding="{Binding IsUserConnected}"
+                                 Value="True">
+                        <Setter Property="IsVisible" Value="False" />
+                    </DataTrigger>
+                </Style.Triggers>
+            </Style>
+        </FlyoutItem.Style>
         <ShellContent ContentTemplate="{DataTemplate local:Login}" />
     </FlyoutItem>
     
     <FlyoutItem Title="Buy"
-                Route="buy">
+                Route="buy"
+                IsVisible="{Binding IsUserConnected}">
         <ShellContent ContentTemplate="{DataTemplate local:Buy}" />
     </FlyoutItem>
     <FlyoutItem Title="My Games"
                 Route="mygames">
         <FlyoutItem.Style>
             <Style TargetType="FlyoutItem">
+                <Setter Property="IsVisible" Value="False" />
                 <Style.Triggers>
                     <DataTrigger TargetType="FlyoutItem"
-                                 Binding="{Binding IsConnected}"
+                                 Binding="{Binding IsUserConnected}"
                                  Value="True">
                         <Setter Property="IsVisible"
                                 Value="True" />
@@ -52,5 +67,6 @@
     <!-- Bouton logout -->
     <MenuItem Text="Se déconnecter"
               IconImageSource="logout.png"
-              Command="{Binding LogoutCommand}"/>
+              Command="{Binding LogoutCommand}"
+              IsEnabled="{Binding IsUserConnected}"/>
 </Shell>

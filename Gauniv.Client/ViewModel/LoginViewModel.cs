@@ -39,6 +39,7 @@ namespace Gauniv.Client.ViewModel
     public partial class LoginViewModel : ObservableObject
     {
         private readonly IAuthRepository _authRepository;
+        private readonly MenuViewModel _menuViewModel;
         // private readonly IServiceProvider _serviceProvider;
         
         [ObservableProperty]
@@ -59,9 +60,10 @@ namespace Gauniv.Client.ViewModel
         [ObservableProperty]
         private bool isLoading;
 
-        public LoginViewModel(IAuthRepository authRepository)
+        public LoginViewModel(IAuthRepository authRepository, MenuViewModel menuViewModel)
         {
             _authRepository = authRepository;
+            _menuViewModel = menuViewModel;
         }
 
         [RelayCommand]
@@ -83,6 +85,7 @@ namespace Gauniv.Client.ViewModel
 
                 if (isAuthenticated)
                 {
+                    _menuViewModel.IsUserConnected = true;
                     // await Shell.Current.GoToAsync("//buy");
                     await NavigateToIndexGames();
                 }

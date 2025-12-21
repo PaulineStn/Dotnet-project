@@ -20,9 +20,6 @@ namespace Gauniv.Client.ViewModel
         [RelayCommand]
         public void GoToProfile() => NavigationService.Instance.Navigate<Profile>([]);
 
-        [ObservableProperty]
-        private bool isConnected = NetworkService.Instance.Token != null;
-
         public MenuViewModel(IAuthService authService)
         {
             NetworkService.Instance.OnConnected += Instance_OnConnected;
@@ -32,7 +29,7 @@ namespace Gauniv.Client.ViewModel
 
         private void Instance_OnConnected()
         {
-            IsConnected = true;
+            IsUserConnected = true;
         }
         
         [RelayCommand]
