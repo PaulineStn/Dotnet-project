@@ -179,6 +179,11 @@ public class GameInstallService : IGameInstallService
                 if (_runningGame != null && !_runningGame.HasExited)
                     _runningGame.Kill();
             }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Erreur capturée : {ex}");
+                Console.WriteLine($"Erreur capturée : {ex.Message}");
+            }
             finally
             {
                 _runningGame = null;
