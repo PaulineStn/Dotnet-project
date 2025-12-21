@@ -78,7 +78,8 @@ public partial class BuyViewModel : ObservableObject
 					local_isLoggedIn,
 					_installService);
 
-				if (local_item.Action == GameActionType.Buy)
+				// Afficher tous les jeux qui ne sont pas encore achetés OU qui sont achetés mais pas encore installés (Download)
+				if (local_item.Action == GameActionType.Buy || local_item.Action == GameActionType.Download)
 				{
 					GamesToBuy.Add(local_item);
 				}
@@ -142,6 +143,8 @@ public partial class BuyViewModel : ObservableObject
 				return;
 			}
 
+			// Recharge la liste pour que l'action devienne Download
+			await LoadGamesAsync();
 			SelectedGame = null;
 		}
 		finally
@@ -149,7 +152,6 @@ public partial class BuyViewModel : ObservableObject
 			IsLoading = false;
 		}
 
-		await LoadGamesAsync();
 		await Shell.Current.GoToAsync("//games");
 	}
 

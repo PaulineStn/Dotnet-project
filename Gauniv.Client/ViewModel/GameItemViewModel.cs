@@ -42,7 +42,6 @@ public partial class GameItemViewModel : ObservableObject
     
     private void ComputeAction()
     {
-
         if (!IsLoggedIn)
         {
             Action =  GameActionType.LoginRequired;
@@ -54,6 +53,7 @@ public partial class GameItemViewModel : ObservableObject
             return;
         }
 
+        // Fix: If owned but not installed, action must be Download (not Play)
         if (!IsInstalled)
         {
             Action = GameActionType.Download;
